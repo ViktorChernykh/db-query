@@ -8,11 +8,11 @@ public extension SQLQueryFetcher {
     func first<D>(decode: D.Type) async throws -> D? where D: Decodable {
         return try await self.first(decode: D.self).get()
     }
-    
+
     func all<D>(decode: D.Type) async throws -> [D] where D: Decodable {
         return try await self.all(decode: D.self).get()
     }
-    
+
     func run<D>(decode: D.Type, _ handler: @escaping (Result<D, Error>) -> ()) async throws -> Void where D: Decodable {
         return try await self.run(decode: D.self, handler).get()
     }
@@ -29,7 +29,7 @@ public extension SQLQueryFetcher {
             return try row.decode(model: D.self, keyDecodingStrategy: .convertFromSnakeCase)
         }
     }
-    
+
     // MARK: All
     func all<D>(decode: D.Type) -> EventLoopFuture<[D]> where D: Decodable {
         return self.all().flatMapThrowing {
@@ -39,7 +39,7 @@ public extension SQLQueryFetcher {
         }
     }
 
-    
+
     // MARK: Run
     func run<D>(decode: D.Type, _ handler: @escaping (Result<D, Error>) -> ()) -> EventLoopFuture<Void>
         where D: Decodable

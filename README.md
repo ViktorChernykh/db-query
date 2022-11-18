@@ -43,26 +43,26 @@ extension Request {
 final class User: DBModel {
     static let alias = v1.alias
     static let schema = v1.schema
-    
+
     var id: UUID
     var name: String
     var password: String
-    
+
     init(
         id: UUID = UUID(),
         name: String,
         password: String
     )
-    
+
     struct v1 {
         static let schema = "users"
         static let alias = "u"
-        
+
         static let id: Column = "id"
         static let name: Column = "name"
         static let password: Column = "password"
     }
-    
+
     struct Public: Codable {
         let id: UUID
         let name: String
@@ -76,14 +76,14 @@ import DBQuery
 import Vapor
 
     typealias u = User.v1
-    
+
     let id = UUID()
     let name = "Ray"
     let password = "******"
-    
+
     /// Create
     try await User.create(on: req.sql)
-        .query.values(id, name, password)
+        .values(id, name, password)
         .run()
 
     /// Read
@@ -97,7 +97,7 @@ import Vapor
         .filter(u.id == id)
         .set(u.name == "Ray2")  // or .set(u.name, to: "Ray2")
         .run()
-        
+
     /// Delete
     let deleted = try await User.delete(on: req.sql)
         .filter(u.id ~~ [id1, id2])

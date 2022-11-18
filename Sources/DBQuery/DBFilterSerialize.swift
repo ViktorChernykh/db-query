@@ -9,16 +9,16 @@ public protocol DBFilterSerialize {
     var filterAnd: [DBRaw] { get set }
     var filterOr: [DBRaw] { get set }
 }
-   
+
 extension DBFilterSerialize {
-    
+
     func serializeFilter(source raw: DBRaw) -> DBRaw {
         let rawAnd = serializeItem(source: raw, conjunction: .and)
         let rawOr = serializeItem(source: rawAnd, conjunction: .or)
-        
+
         return rawOr
     }
-    
+
     func serializeItem(source raw: DBRaw, conjunction: DBCondition) -> DBRaw {
         var secondFilter = false
         var query = raw
@@ -34,12 +34,12 @@ extension DBFilterSerialize {
             }
         }
         guard filters.count > 0 else { return raw }
-        
-        
+
+
         var j = query.binds.count
         let conj = conjunction.rawValue
         let last = filters.count - 1
-        
+
         if last > 0 {
             for i in 0..<last {
                 let binds = filters[i].binds
@@ -93,7 +93,7 @@ extension DBFilterSerialize {
         if secondFilter {
             query.sql += ")"
         }
-        
+
         return query
     }
 }

@@ -25,10 +25,10 @@ extension DBSelectBuilder {
         let joinTable = DBTable(self.space, table: model.schema + self.section, as: alias).serialize()
         let join = DBJoin(alias: alias, from: joinTable, method: method)
         self.joins.append(join)
-        
+
         return self
     }
-    
+
     /// Common
     ///
     ///     final class Star: DBModel {
@@ -62,7 +62,7 @@ extension DBSelectBuilder {
     ///
     ///     let query = Star.select(section: "aa", on: db)
     ///         .filter(s.id == id)
-    
+
     // MARK: - AND
     @discardableResult
     /// Adds `ON` condition for last `Join`.
@@ -79,11 +79,11 @@ extension DBSelectBuilder {
         let last = lastJoin()
         let lhs = DBColumn(table: self.joins[last].alias, data.lhs).serialize()
         let rhs = DBColumn(table: rightAlias, data.rhs).serialize()
-        
+
         self.joins[last].filterAnd.append(DBRaw(lhs + data.op + rhs))
         return self
     }
-    
+
     @discardableResult
     /// Adds `ON` condition for last `Join`.
     ///
@@ -100,7 +100,7 @@ extension DBSelectBuilder {
         self.joins[last].filterAnd.append(DBRaw(lhs + data.op, [data.rhs]))
         return self
     }
-    
+
     @discardableResult
     /// Adds `ON` condition for last `Join`.
     ///
@@ -117,7 +117,7 @@ extension DBSelectBuilder {
         self.joins[last].filterAnd.append(DBRaw(lhs + data.op, data.rhs))
         return self
     }
-    
+
     @discardableResult
     /// Adds custom `ON` condition for last `Join`.
     ///
@@ -137,7 +137,7 @@ extension DBSelectBuilder {
         self.joins[last].filterAnd.append(DBRaw(lhs + " \(custom) ", [bind]))
         return self
     }
-    
+
     // MARK: - OR
     @discardableResult
     /// Adds `ON` condition for last `Join`.
@@ -154,11 +154,11 @@ extension DBSelectBuilder {
         let last = lastJoin()
         let lhs = DBColumn(table: self.joins[last].alias, data.lhs).serialize()
         let rhs = DBColumn(table: rightAlias, data.rhs).serialize()
-        
+
         self.joins[last].filterOr.append(DBRaw(lhs + data.op + rhs))
         return self
     }
-    
+
     @discardableResult
     /// Adds `ON` condition for last `Join`.
     ///
@@ -175,7 +175,7 @@ extension DBSelectBuilder {
         self.joins[last].filterOr.append(DBRaw(lhs + data.op, [data.rhs]))
         return self
     }
-    
+
     @discardableResult
     /// Adds `ON` condition for last `Join`.
     ///
@@ -192,7 +192,7 @@ extension DBSelectBuilder {
         self.joins[last].filterOr.append(DBRaw(lhs + data.op, data.rhs))
         return self
     }
-    
+
     @discardableResult
     /// Adds custom `ON` condition for last `Join`.
     ///
@@ -212,7 +212,7 @@ extension DBSelectBuilder {
         self.joins[last].filterOr.append(DBRaw(lhs + " \(custom) ", [bind]))
         return self
     }
-    
+
     /// Count the number of initiated Joins. If the number is 0, throws a fatal error.
     /// - Returns: number of initiated Joins.
     private func lastJoin() -> Int {

@@ -25,10 +25,10 @@ extension DBSelectBuilder {
         copy.order = []
         self.offset = pageRequest.offset
         self.limit = pageRequest.per
-        
+
         async let count = copy.count()
         async let items = self.all(decode: U.self)
-        
+
         let(models, total) = try await(items, count)
         return Page(
             items: models,
@@ -54,7 +54,7 @@ public struct Page<T: Codable>: Codable {
         self.items = items
         self.metadata = metadata
     }
-    
+
     /// Maps a page's items to a different type using the supplied closure.
     public func map<U>(_ transform: (T) throws -> (U)) rethrows -> Page<U> {
         try .init(
@@ -74,13 +74,13 @@ public struct PageMetadata: Codable {
 
     /// Total number of items available.
     public let total: Int
-    
+
     /// Computed total number of pages with `1` being the minimum.
     public var pageCount: Int {
         let count = Int((Double(self.total)/Double(self.per)).rounded(.up))
         return count < 1 ? 1 : count
     }
-    
+
     /// Creates a new `PageMetadata` instance.
     ///
     /// - Parameters:
@@ -101,7 +101,7 @@ public struct PageRequest: Decodable {
 
     /// Max items per page.
     public let per: Int
-    
+
     public var offset: Int {
         (self.page - 1) * self.per
     }

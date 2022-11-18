@@ -19,7 +19,7 @@ extension DBModel {
             .filter(Column("id") == id)
             .first(decode: Self.self)
     }
-    
+
     /// Creates DBSelectBuilder with custom space and table name.
     /// - Parameters:
     ///   - space: A postgres schema name.
@@ -32,7 +32,7 @@ extension DBModel {
             section: section,
             on: db)
     }
-    
+
     @discardableResult
     /// Creates line into database
     /// - Parameters:
@@ -46,7 +46,7 @@ extension DBModel {
             section: section,
             on: db)
     }
-    
+
     /// Creates DBUpdateBuilder with custom space and table name.
     /// - Parameters:
     ///   - space: A postgres schema name.
@@ -59,7 +59,7 @@ extension DBModel {
             section: section,
             on: db)
     }
-    
+
     /// Deletes DBDeleteBuilder with custom space and table name.
     /// - Parameters:
     ///   - space: A postgres schema name.
@@ -72,7 +72,7 @@ extension DBModel {
             section: section,
             on: db)
     }
-    
+
     /// Deletes DBDeleteBuilder with custom space and table name.
     /// - Parameters:
     ///   - space: A postgres schema name.

@@ -11,12 +11,12 @@ public final class DBUpdateBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
     // MARK: Stored properties
     /// See `DBQueryFetcher`.
     public var database: SQLDatabase
-    
+
     public let space: String?
     public let schema: String
     public let section: String
     public let alias: String
-    
+
     public var with: DBRaw? = nil
     public var update: String = ""
     public var sets: [DBRaw] = []
@@ -25,7 +25,7 @@ public final class DBUpdateBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
     public var filterAnd: [DBRaw] = []
     public var filterOr: [DBRaw] = []
     public var returning: [String] = []
-    
+
     // MARK: - Init
     public init(space: String? = nil, section: String, on database: SQLDatabase) {
         self.database = database
@@ -33,22 +33,22 @@ public final class DBUpdateBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
         self.schema = T.schema + section
         self.section = section
         self.alias = T.alias
-        
+
         self.update.append(
             DBTable(space, table: T.schema + section).serialize()
         )
     }
-    
+
     public func serialize() -> SQLRaw {
         var query = DBRaw("")
-        
+
         if let with = self.with {
             query.sql += "WITH " + with.sql + " "
             query.binds += with.binds
         }
         query.sql += "UPDATE " + self.update
         var j = query.binds.count
-        
+
         if sets.count > 0 {
             query.sql += " SET "
             let last = sets.count - 1
@@ -105,11 +105,11 @@ public final class DBUpdateBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
                 query.sql += "$\(j))"
             }
         }
-        
+
         if self.from.count > 0 {
             query.sql += " FROM " + self.from.joined(separator: ", ")
         }
-        
+
         if let cursor = self.cursor {
             query.sql += " WHERE CURRENT OF \(cursor)"
         } else {

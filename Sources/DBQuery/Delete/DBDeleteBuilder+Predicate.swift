@@ -19,11 +19,11 @@ extension DBDeleteBuilder {
     public func filter(_ data: ColumnColumn) -> Self {
         let lhs = DBColumn(table: self.alias, data.lhs).serialize()
         let rhs = DBColumn(table: self.alias, data.rhs).serialize()
-        
+
         self.filterAnd.append(DBRaw(lhs + data.op + rhs))
         return self
     }
-    
+
     @discardableResult
     /// Creates binary expression from struct with source data to `WHERE` condition.
     ///
@@ -35,11 +35,11 @@ extension DBDeleteBuilder {
     /// - Returns: `self` for chaining.
     public func filter(_ data: ColumnBind) -> Self {
         let lhs = DBColumn(table: self.alias, data.lhs).serialize()
-        
+
         self.filterAnd.append(DBRaw(lhs + data.op, [data.rhs]))
         return self
     }
-    
+
     @discardableResult
     /// Creates binary expression from struct with source data to `WHERE` condition.
     ///
@@ -51,11 +51,11 @@ extension DBDeleteBuilder {
     /// - Returns: `self` for chaining.
     public func filter(_ data: ColumnBinds) -> Self {
         let lhs = DBColumn(table: self.alias, data.lhs).serialize()
-        
+
         self.filterAnd.append(DBRaw(lhs + data.op, data.rhs))
         return self
     }
-    
+
     @discardableResult
     /// Creates binary expression from struct with source data to `WHERE` condition.
     ///
@@ -70,13 +70,13 @@ extension DBDeleteBuilder {
     /// - Returns: `self` for chaining.
     public func filter(_ column: Column, _ custom: String, _ bind: Encodable) -> Self {
         let lhs = DBColumn(table: self.alias, column).serialize()
-        
+
         self.filterAnd.append(DBRaw(lhs + " \(custom) ", [bind]))
         return self
     }
-    
+
     // MARK: - OR -
-    
+
     @discardableResult
     /// Creates binary expression from struct with source data to `WHERE` condition.
     ///
@@ -89,11 +89,11 @@ extension DBDeleteBuilder {
     public func orFilter(_ data: ColumnColumn) -> Self {
         let lhs = DBColumn(table: self.alias, data.lhs).serialize()
         let rhs = DBColumn(table: self.alias, data.rhs).serialize()
-        
+
         self.filterOr.append(DBRaw(lhs + data.op + rhs))
         return self
     }
-    
+
     @discardableResult
     /// Creates binary expression from struct with source data to `WHERE` condition.
     ///
@@ -105,11 +105,11 @@ extension DBDeleteBuilder {
     /// - Returns: `self` for chaining.
     public func orFilter(_ data: ColumnBind) -> Self {
         let lhs = DBColumn(table: self.alias, data.lhs).serialize()
-        
+
         self.filterOr.append(DBRaw(lhs + data.op, [data.rhs]))
         return self
     }
-    
+
     @discardableResult
     /// Creates binary expression from struct with source data to `WHERE` condition.
     ///
@@ -121,11 +121,11 @@ extension DBDeleteBuilder {
     /// - Returns: `self` for chaining.
     public func orFilter(_ data: ColumnBinds) -> Self {
         let lhs = DBColumn(table: self.alias, data.lhs).serialize()
-        
+
         self.filterOr.append(DBRaw(lhs + data.op, data.rhs))
         return self
     }
-    
+
     @discardableResult
     /// Creates binary expression from struct with source data to `WHERE` condition.
     ///
@@ -140,7 +140,7 @@ extension DBDeleteBuilder {
     /// - Returns: `self` for chaining.
     public func orFilter(_ column: Column, _ custom: String, _ bind: Encodable) -> Self {
         let lhs = DBColumn(table: self.alias, column).serialize()
-        
+
         self.filterOr.append(DBRaw(lhs + " \(custom) ", [bind]))
         return self
     }

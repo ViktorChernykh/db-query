@@ -6,7 +6,7 @@
 //
 
 extension DBInsertBuilder {
-    
+
     @discardableResult
     /// Adds `with` request.
     ///
@@ -14,10 +14,10 @@ extension DBInsertBuilder {
     /// - Returns: `self` for chaining.
     public func with(_ sql: DBRaw) -> Self {
         self.with = sql
-        
+
         return self
     }
-    
+
     @discardableResult
     /// Sets list of table's column names.
     ///
@@ -29,7 +29,7 @@ extension DBInsertBuilder {
         }
         return self
     }
-    
+
     @discardableResult
     /// Add values for the `set()`.
     ///
@@ -37,10 +37,10 @@ extension DBInsertBuilder {
     /// - Returns: self` for chaining.
     public func values(_ values: Encodable...) -> Self {
         self.inserts.append(DBInsert(values: values))
-        
+
         return self
     }
-    
+
     @discardableResult
     /// Sets a list of table columns to returning from the sql request.
     ///
@@ -53,14 +53,14 @@ extension DBInsertBuilder {
         }
         return self
     }
-    
+
     @discardableResult
     /// Reset values for the next `INSERT`.
     ///
     /// - Returns: `self` for chaining.
     public func resetValues() -> Self {
         self.inserts = []
-        
+
         return self
     }
 }

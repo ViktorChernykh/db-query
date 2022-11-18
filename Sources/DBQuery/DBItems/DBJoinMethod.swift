@@ -11,7 +11,7 @@ public enum DBJoinMethod {
     case inner
     case left
     case right
-    
+
     public func serialize() -> String {
         switch self {
         case .cross: return " CROSS "

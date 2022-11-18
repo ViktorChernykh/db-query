@@ -6,7 +6,7 @@
 //
 
 extension DBUpdateBuilder {
-    
+
     @discardableResult
     /// Adds value to the `SET` operator.
     ///
@@ -15,10 +15,10 @@ extension DBUpdateBuilder {
     public func set(_ data: ColumnBind) -> Self {
         let lhs = DBColumn(table: nil, data.lhs).serialize()
         self.sets.append(DBRaw(lhs + data.op, [data.rhs]))
-        
+
         return self
     }
-    
+
     @discardableResult
     /// Adds value to the `SET` operator.
     ///
@@ -29,7 +29,7 @@ extension DBUpdateBuilder {
     public func set<T: Encodable>(_ field: Column, to rhs: T) -> Self {
         let lhs = DBColumn(table: nil, field).serialize()
         self.sets.append(DBRaw(lhs + " = ", [rhs]))
-        
+
         return self
     }
 }

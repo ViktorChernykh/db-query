@@ -13,7 +13,7 @@ extension SchemaBuilder {
             constraints: constraints
         ))
     }
-    
+
     @discardableResult
     public func unique(on fields: Column..., name: String? = nil) -> Self {
         self.constraint(.constraint(
@@ -21,7 +21,7 @@ extension SchemaBuilder {
             name: name
         ))
     }
-    
+
     @discardableResult
     public func compositeIdentifier(over fields: Column...) -> Self {
         self.constraint(.constraint(.compositeIdentifier(fields.map { .key(FieldKey(stringLiteral: $0.key)) }), name: ""))

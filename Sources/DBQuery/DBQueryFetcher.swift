@@ -14,7 +14,7 @@ public protocol DBQueryFetcher: AnyObject {
 
 extension DBQueryFetcher {
     // MARK: - First
-    
+
     public func first<D>(decode: D.Type) -> EventLoopFuture<D?> where D: Decodable {
         self.first().flatMapThrowing {
             guard let row = $0 else {
@@ -23,7 +23,7 @@ extension DBQueryFetcher {
             return try row.decode(type: D.self)
         }
     }
-    
+
     /// Collects the first raw output and returns it.
     ///
     ///     builder.first()
@@ -31,9 +31,9 @@ extension DBQueryFetcher {
     public func first() -> EventLoopFuture<SQLRow?> {
         return self.all().map { $0.first }
     }
-    
+
     // MARK: - All
-    
+
     public func all<D>(decode: D.Type) -> EventLoopFuture<[D]>
     where D: Decodable
     {
@@ -43,7 +43,7 @@ extension DBQueryFetcher {
             }
         }
     }
-    
+
     /// Collects all raw output into an array and returns it.
     ///
     ///     builder.all()
@@ -54,9 +54,9 @@ extension DBQueryFetcher {
             all.append(row)
         }.map { all }
     }
-    
+
     // MARK: - Run
-    
+
     public func run<D>(decode: D.Type, _ handler: @escaping (Result<D, Error>) -> ()) -> EventLoopFuture<Void>
         where D: Decodable
     {
@@ -68,7 +68,7 @@ extension DBQueryFetcher {
             }
         }
     }
-    
+
     /// Runs the query, passing output to the supplied closure as it is received.
     ///
     ///     builder.run { print($0) }
@@ -79,7 +79,7 @@ extension DBQueryFetcher {
             handler(row)
         }
     }
-    
+
     /// Runs the query.
     ///
     ///     builder.run()

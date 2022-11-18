@@ -6,7 +6,7 @@
 //
 
 extension DBSelectBuilder {
-    
+
     @discardableResult
     /// Sets the distinct value to true for serializing.
     /// - Parameters:
@@ -21,7 +21,7 @@ extension DBSelectBuilder {
         }
         return self
     }
-    
+
     @discardableResult
     /// Adds a `LIMIT` clause to the query. If called more than once, the last call wins.
     ///

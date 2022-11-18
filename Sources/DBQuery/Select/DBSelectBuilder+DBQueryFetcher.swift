@@ -15,23 +15,23 @@ public extension DBSelectBuilder {
     func first() async throws -> SQLRow? {
         return try await self.first().get()
     }
-    
+
     func first<D>(decode: D.Type) async throws -> D? where D: Decodable {
         return try await self.first(decode: D.self).get()
     }
-    
+
     func all() async throws -> [SQLRow] {
         return try await self.all().get()
     }
-    
+
     func all<D>(decode: D.Type) async throws -> [D] where D: Decodable {
         return try await self.all(decode: D.self).get()
     }
-    
+
     func run<D>(decode: D.Type, _ handler: @escaping (Result<D, Error>) -> ()) async throws -> Void where D: Decodable {
         return try await self.run(decode: D.self, handler).get()
     }
-    
+
     func run() async throws {
         return try await self.run().get()
     }
@@ -41,7 +41,7 @@ public extension DBSelectBuilder {
 
 extension DBSelectBuilder {
     // MARK: - First
-    
+
     public func first<D>(decode: D.Type) -> EventLoopFuture<D?> where D: Decodable {
         self.first().flatMapThrowing {
             guard let row = $0 else {
@@ -50,7 +50,7 @@ extension DBSelectBuilder {
             return try row.decode(type: D.self)
         }
     }
-    
+
     /// Collects the first raw output and returns it.
     ///
     ///     builder.first()
@@ -59,9 +59,9 @@ extension DBSelectBuilder {
         self.limit = limit
         return self.all().map { $0.first }
     }
-    
+
     // MARK: - All
-    
+
     public func all<D>(decode: D.Type) -> EventLoopFuture<[D]>
     where D: Decodable
     {
@@ -71,7 +71,7 @@ extension DBSelectBuilder {
             }
         }
     }
-    
+
     /// Collects all raw output into an array and returns it.
     ///
     ///     builder.all()
@@ -82,9 +82,9 @@ extension DBSelectBuilder {
             all.append(row)
         }.map { all }
     }
-    
+
     // MARK: - Run
-    
+
     public func run<D>(decode: D.Type, _ handler: @escaping (Result<D, Error>) -> ()) -> EventLoopFuture<Void>
         where D: Decodable
     {
@@ -96,7 +96,7 @@ extension DBSelectBuilder {
             }
         }
     }
-    
+
     /// Runs the query, passing output to the supplied closure as it is received.
     ///
     ///     builder.run { print($0) }
@@ -107,7 +107,7 @@ extension DBSelectBuilder {
             handler(row)
         }
     }
-    
+
     /// Runs the query.
     ///
     ///     builder.run()

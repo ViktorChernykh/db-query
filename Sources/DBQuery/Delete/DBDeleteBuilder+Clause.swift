@@ -8,7 +8,7 @@
 import SQLKit
 
 extension DBDeleteBuilder {
-    
+
     @discardableResult
     /// Adds the raw `with` subquery to the select query.
     ///
@@ -16,10 +16,10 @@ extension DBDeleteBuilder {
     /// - Returns: `self` for chaining.
     public func with(_ sql: DBRaw) -> Self {
         self.with = sql
-        
+
         return self
     }
-    
+
     @discardableResult
     /// Sets the `using` model.
     ///
@@ -31,10 +31,10 @@ extension DBDeleteBuilder {
         let alias = tableAlias ?? model.alias
         let schema = DBTable(space, table: model.schema + self.section, as: alias)
         self.using.append(schema.serialize())
-        
+
         return self
     }
-    
+
     @discardableResult
     /// Sets the cursor's name.
     ///
@@ -42,10 +42,10 @@ extension DBDeleteBuilder {
     /// - Returns: `self` for chaining.
     public func cursor(_ name: String) -> Self {
         self.cursor = name
-        
+
         return self
     }
-    
+
     @discardableResult
     /// Sets a list of table columns to returning from the sql request.
     ///

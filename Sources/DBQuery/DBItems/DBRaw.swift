@@ -8,7 +8,7 @@
 public struct DBRaw {
     public  var sql: String
     public  var binds: [Encodable]
-    
+
     public init(_ sql: String, _ binds: [Encodable] = []) {
         self.sql = sql
         self.binds = binds

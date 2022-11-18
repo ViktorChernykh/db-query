@@ -8,7 +8,7 @@
 import SQLKit
 
 extension DBSelectBuilder {
-    
+
     // MARK: - WITH
     @discardableResult
     /// Adds the raw `with` subquery to the select query.
@@ -17,10 +17,10 @@ extension DBSelectBuilder {
     /// - Returns: `self` for chaining.
     public func with(_ sql: DBRaw) -> Self {
         self.with = sql
-        
+
         return self
     }
-    
+
     // MARK: - FROM
     @discardableResult
     /// Adds a foreign table name.
@@ -33,10 +33,10 @@ extension DBSelectBuilder {
         let alias = tableAlias ?? model.alias
         let schema = DBTable(table: model.schema + self.section, as: alias)
         self.from.append(schema.serialize())
-        
+
         return self
     }
-    
+
     // MARK: - WHERE
     @discardableResult
     /// Specify the column to be part of the result set of the query.
@@ -44,7 +44,7 @@ extension DBSelectBuilder {
     /// - Returns: `self` for chaining.
     public func fields() -> Self {
         self.columns = ["\"\(self.alias)\".*"]
-        
+
         return self
     }
     @discardableResult
@@ -67,13 +67,13 @@ extension DBSelectBuilder {
                 self.columns = []
             }
         }
-            
+
         let col = DBColumn(table: table, column, alias: columnAlias).serialize()
         self.columns.append(col)
-        
+
         return self
     }
-    
+
     @discardableResult
     /// Specify the columns to be part of the result set of the query.
     ///
@@ -93,14 +93,14 @@ extension DBSelectBuilder {
                 self.columns = []
             }
         }
-        
+
         self.columns += columns.map {
             DBColumn(table: table, $0).serialize()
         }
-        
+
         return self
     }
-    
+
     /// Count the number of initiated Joins. If the number is 0, throws a fatal error.
     ///
     /// - Returns: Number of initiated Joins.
@@ -115,7 +115,7 @@ extension DBSelectBuilder {
 
 // MARK: - GROUP BY / ORDER BY
 extension DBSelectBuilder {
-    
+
     @discardableResult
     /// Adds a `GROUP BY` clause to the query with the specified column.
     ///
@@ -146,7 +146,7 @@ extension DBSelectBuilder {
             DBColumn(table: table, $0).serialize() + direct.serialize()
         }
         self.order += fields
-        
+
         return self
     }
 }
@@ -158,47 +158,47 @@ extension DBSelectBuilder {
         guard let row = try await aggreg(columns, as: tableAlias) else {
             return 0
         }
-        
+
         return try row.decode(column: "avg", as: Int.self)
     }
-    
+
     public func count(_ columns: Column..., as tableAlias: String? = nil) async throws -> Int {
         self.aggregate = .count
         self.limit = nil
         guard let row = try await aggreg(columns, as: tableAlias) else {
             return 0
         }
-        
+
         return try row.decode(column: "count", as: Int.self)
     }
-    
-    public func maximum(_ columns: Column..., as tableAlias: String? = nil) async throws -> Int {
+
+    public func maximum(_ columns: Column..., as tableAlias: String? = nil) async throws -> Double {
         self.aggregate = .max
         guard let row = try await aggreg(columns, as: tableAlias) else {
             return 0
         }
-        
-        return try row.decode(column: "max", as: Int.self)
+
+        return try row.decode(column: "max", as: Double.self)
     }
-    
-    public func minimum(_ columns: Column..., as tableAlias: String? = nil) async throws -> Int {
+
+    public func minimum(_ columns: Column..., as tableAlias: String? = nil) async throws -> Double {
         self.aggregate = .min
         guard let row = try await aggreg(columns, as: tableAlias) else {
             return 0
         }
-        
-        return try row.decode(column: "min", as: Int.self)
+
+        return try row.decode(column: "min", as: Double.self)
     }
-    
-    public func sum(_ columns: Column..., as tableAlias: String? = nil) async throws -> Int {
+
+    public func sum(_ columns: Column..., as tableAlias: String? = nil) async throws -> Double {
         self.aggregate = .sum
         guard let row = try await aggreg(columns, as: tableAlias) else {
-            return 0
+            return 0.0
         }
-        
-        return try row.decode(column: "sum", as: Int.self)
+
+        return try row.decode(column: "sum", as: Double.self)
     }
-    
+
     private func aggreg(_ columns: [Column], as tableAlias: String?) async throws -> SQLRow? {
         let alias = tableAlias ?? self.alias
         if columns.count > 0 {
@@ -208,7 +208,7 @@ extension DBSelectBuilder {
         } else {
             self.columns = ["\"\(alias)\".*"]
         }
-        
+
         return try await self.first(limit: nil).get()
     }
 }

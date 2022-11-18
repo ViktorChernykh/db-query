@@ -13,7 +13,7 @@ extension SQLString {
     public mutating func appendInterpolation(ident: Column) {
         self.fragments.append(SQLIdentifier(ident.description))
     }
-    
+
     /// Embed an array of `Strings` as a list of SQL identifiers, using the `joiner` to separate them.
     ///
     /// - Important: This interprets each string as an identifier, _not_ as a literal value!
@@ -28,11 +28,11 @@ extension SQLString {
     public mutating func appendInterpolation(idents: [Column]) {
         self.fragments.append(SQLList(idents.map { SQLIdentifier($0.description) }))
     }
-    
+
     public mutating func appendInterpolation(_ idents: Column...) {
         self.fragments.append(SQLList(idents.map { SQLIdentifier($0.description) }))
     }
-    
+
     public var isEmpty: Bool {
         self.fragments.count > 0 ? false : true
     }

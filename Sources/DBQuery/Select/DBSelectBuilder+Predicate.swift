@@ -39,7 +39,7 @@ extension DBSelectBuilder {
     ///
     ///     let query = Star.select(section: "aa", on: db)
     ///         .filter(s.id == id)
-    
+
     // MARK: --- AND ---
     @discardableResult
     /// Creates binary expression from struct with source data to `WHERE` condition
@@ -54,11 +54,11 @@ extension DBSelectBuilder {
     public func filter(_ data: ColumnColumn, _ leftAlias: String, _ rightAlias: String) -> Self {
         let lhs = DBColumn(table: leftAlias, data.lhs).serialize()
         let rhs = DBColumn(table: rightAlias, data.rhs).serialize()
-        
+
         self.filterAnd.append(DBRaw(lhs + data.op + rhs))
         return self
     }
-    
+
     @discardableResult
     /// Creates binary expression from struct with source data to `WHERE` condition
     ///
@@ -75,7 +75,7 @@ extension DBSelectBuilder {
         self.filterAnd.append(DBRaw(lhs + data.op, [data.rhs]))
         return self
     }
-    
+
     @discardableResult
     /// Creates binary expression from struct with source data to `WHERE` condition
     ///
@@ -92,7 +92,7 @@ extension DBSelectBuilder {
         self.filterAnd.append(DBRaw(lhs + data.op, data.rhs))
         return self
     }
-    
+
     @discardableResult
     /// Creates binary expression from struct with source data to `WHERE` condition
     ///
@@ -111,9 +111,9 @@ extension DBSelectBuilder {
         self.filterAnd.append(DBRaw(lhs + " \(custom) ", [bind]))
         return self
     }
-    
+
     // MARK: --- OR ---
-    
+
     @discardableResult
     /// Creates binary expression from struct with source data to `WHERE` condition
     ///
@@ -127,11 +127,11 @@ extension DBSelectBuilder {
     public func orFilter(_ data: ColumnColumn, _ leftAlias: String, _ rightAlias: String) -> Self {
         let lhs = DBColumn(table: leftAlias, data.lhs).serialize()
         let rhs = DBColumn(table: rightAlias, data.rhs).serialize()
-        
+
         self.filterOr.append(DBRaw(lhs + data.op + rhs))
         return self
     }
-    
+
     @discardableResult
     /// Creates binary expression from struct with source data to `WHERE` condition
     ///
@@ -148,7 +148,7 @@ extension DBSelectBuilder {
         self.filterOr.append(DBRaw(lhs + data.op, [data.rhs]))
         return self
     }
-    
+
     @discardableResult
     /// Creates binary expression from struct with source data to `WHERE` condition
     ///
@@ -165,7 +165,7 @@ extension DBSelectBuilder {
         self.filterOr.append(DBRaw(lhs + data.op, data.rhs))
         return self
     }
-    
+
     @discardableResult
     /// Creates binary expression from struct with source data to `WHERE` condition
     ///
