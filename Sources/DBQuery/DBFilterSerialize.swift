@@ -50,9 +50,9 @@ extension DBFilterSerialize {
                        String(val.prefix(1)) == "\'",
                        String(val.suffix(1)) == "\'" {
                         if sql.suffix(4) == " IN " {
-                            query.sql += "\(filters[i].sql)(\(val)), "
+                            query.sql += "\(sql)(\(val)), "
                         } else {
-                            query.sql += "\(filters[i].sql)\(val), "
+                            query.sql += "\(sql)\(val), "
                         }
                         continue
                     }

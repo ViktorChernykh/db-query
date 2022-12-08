@@ -90,11 +90,7 @@ public final class DBInsertBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
                         if let val = binds[0] as? String,      // This for Database types
                            String(val.prefix(1)) == "\'",
                            String(val.suffix(1)) == "\'" {
-                            if sql.suffix(4) == " IN " {
-                                query.sql += "\(sets.sql)(\(val)), "
-                            } else {
-                                query.sql += "\(sets.sql)\(val), "
-                            }
+                            query.sql += "\(sets.sql)\(val), "
                             continue
                         }
                         query.binds += binds
