@@ -14,7 +14,6 @@ extension DBSelectBuilder {
     ///   - page: The index of the page.
     ///   - per: The size of the page.
     ///   - decode: Type of model for decoding.
-    ///   - transform:
     /// - Returns: A single `Page` of the result set containing the requested items and page metadata.
     public func paginate<U: Decodable>(page: Int?, per: Int?, decode: U.Type) async throws -> Page<U> {
         let pageRequest = PageRequest(
@@ -84,9 +83,9 @@ public struct PageMetadata: Codable {
     /// Creates a new `PageMetadata` instance.
     ///
     /// - Parameters:
-    ///.  - page: Current page number.
-    ///.  - per: Max items per page.
-    ///.  - total: Total number of items available.
+    ///   - page: Current page number.
+    ///   - per: Max items per page.
+    ///   - total: Total number of items available.
     public init(page: Int, per: Int, total: Int) {
         self.page = page
         self.per = per

@@ -13,10 +13,9 @@ extension DBSelectBuilder {
     ///   - columns: List of columns for distinct.
     ///   - alterAlias: alias for columns, by default - the alias from the first table in `FROM`.
     /// - Returns: `self` for chaining.
-    public func distinct(on columns: Column..., as alterAlias: String? = nil) -> Self {
-        self.isDistinct = true
+    public func distinct(_ columns: Column..., as alterAlias: String? = nil) -> Self {
         let alias = alterAlias ?? self.alias
-        self.columns = columns.map {
+        self.distinct = columns.map {
             DBColumn(table: alias, $0).serialize()
         }
         return self

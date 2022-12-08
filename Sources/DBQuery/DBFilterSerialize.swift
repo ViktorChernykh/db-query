@@ -11,7 +11,6 @@ public protocol DBFilterSerialize {
 }
 
 extension DBFilterSerialize {
-
     func serializeFilter(source raw: DBRaw) -> DBRaw {
         let rawAnd = serializeItem(source: raw, conjunction: .and)
         let rawOr = serializeItem(source: rawAnd, conjunction: .or)
@@ -35,7 +34,6 @@ extension DBFilterSerialize {
         }
         guard filters.count > 0 else { return raw }
 
-
         var j = query.binds.count
         let conj = conjunction.rawValue
         let last = filters.count - 1
@@ -48,6 +46,16 @@ extension DBFilterSerialize {
                 case 0:
                     query.sql += sql + conj
                 case 1:
+                    if let val = binds[0] as? String,      // This for Database types
+                       String(val.prefix(1)) == "\'",
+                       String(val.suffix(1)) == "\'" {
+                        if sql.suffix(4) == " IN " {
+                            query.sql += "\(filters[i].sql)(\(val)), "
+                        } else {
+                            query.sql += "\(filters[i].sql)\(val), "
+                        }
+                        continue
+                    }
                     query.binds += binds
                     j += 1
                     if sql.suffix(4) == " IN " {
@@ -56,6 +64,13 @@ extension DBFilterSerialize {
                         query.sql += sql + "$\(j)\(conj)"
                     }
                 default:
+                    if let val = binds[0] as? String,      // This for Database types
+                       String(val.prefix(1)) == "\'",
+                       String(val.suffix(1)) == "\'" {
+                        let vals = binds.compactMap { $0 as? String }.joined(separator: ", ")
+                        query.sql += "\(filters[i].sql)(\(vals)), "
+                        continue
+                    }
                     query.binds += binds
                     query.sql += sql + "("
                     for _ in 0..<binds.count - 1 {
@@ -73,22 +88,39 @@ extension DBFilterSerialize {
         case 0:
             query.sql += sql
         case 1:
-            query.binds += binds
-            j += 1
-            if sql.suffix(4) == " IN " {
-                query.sql += sql + "($\(j))"
+            if let val = binds[0] as? String,      // This for Database types
+               String(val.prefix(1)) == "\'",
+               String(val.suffix(1)) == "\'" {
+                if sql.suffix(4) == " IN " {
+                    query.sql += "\(sql)(\(val))"
+                } else {
+                    query.sql += "\(sql)\(val)"
+                }
             } else {
-                query.sql += sql + "$\(j)"
+                query.binds += binds
+                j += 1
+                if sql.suffix(4) == " IN " {
+                    query.sql += sql + "($\(j))"
+                } else {
+                    query.sql += sql + "$\(j)"
+                }
             }
         default:
-            query.binds += binds
-            query.sql += sql + "("
-            for _ in 0..<binds.count - 1 {
+            if let val = binds[0] as? String,      // This for Database types
+               String(val.prefix(1)) == "\'",
+               String(val.suffix(1)) == "\'" {
+                let vals = binds.compactMap { $0 as? String }.joined(separator: ", ")
+                query.sql += "\(sql)(\(vals))"
+            } else {
+                query.binds += binds
+                query.sql += sql + "("
+                for _ in 0..<binds.count - 1 {
+                    j += 1
+                    query.sql += "$\(j), "
+                }
                 j += 1
-                query.sql += "$\(j), "
+                query.sql += "$\(j))"
             }
-            j += 1
-            query.sql += "$\(j))"
         }
         if secondFilter {
             query.sql += ")"

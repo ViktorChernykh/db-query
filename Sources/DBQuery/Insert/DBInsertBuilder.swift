@@ -7,7 +7,7 @@
 
 import SQLKit
 
-public final class DBInsertBuilder<T: DBModel>: DBQueryFetcher {
+public final class DBInsertBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerialize {
     // MARK: Stored properties
     /// See `DBQueryFetcher`.
     public var database: SQLDatabase
@@ -20,6 +20,13 @@ public final class DBInsertBuilder<T: DBModel>: DBQueryFetcher {
     public var with: DBRaw? = nil
     public var inserts: [DBInsert] = []
     public var columns: [String] = []
+
+    public var filterAnd: [DBRaw] = []
+    public var filterOr: [DBRaw] = []
+    public var onConflict: [String]? = nil
+    public var setsForUpdate: [DBRaw] = []
+    public var isDoNothing = false
+
     public var returning: [String] = []
 
     // MARK: Init
@@ -65,6 +72,52 @@ public final class DBInsertBuilder<T: DBModel>: DBQueryFetcher {
             lines.append("(" + items.joined(separator: ", ") + ")")
         }
         query.sql += lines.joined(separator: ", ")
+
+        if let onConflict {
+            query.sql += " ON CONFLICT(\(onConflict.joined(separator: ", ")))"
+
+            if isDoNothing {
+                query.sql += " DO NOTHING"
+            } else {
+                query.sql += " DO UPDATE SET "
+
+                for sets in setsForUpdate {
+                    let binds = sets.binds
+                    switch binds.count {
+                    case 0:
+                        query.sql += sets.sql + ", "
+                    case 1:
+                        if let val = binds[0] as? String,      // This for Database types
+                           String(val.prefix(1)) == "\'",
+                           String(val.suffix(1)) == "\'" {
+                            if sql.suffix(4) == " IN " {
+                                query.sql += "\(sets.sql)(\(val)), "
+                            } else {
+                                query.sql += "\(sets.sql)\(val), "
+                            }
+                            continue
+                        }
+                        query.binds += binds
+                        j += 1
+                        query.sql += sets.sql + "$\(j), "
+                    default:
+                        query.binds += binds
+                        query.sql += sets.sql + "("
+                        for _ in binds {
+                            j += 1
+                            query.sql += "$\(j), "
+                        }
+                        query.sql = String(query.sql.dropLast(2)) + "), "
+                    }
+                }
+                query.sql = String(query.sql.dropLast(2))
+            }
+
+            if (self.filterAnd.count + self.filterOr.count) > 0 {
+                query.sql += " WHERE"
+                query = serializeFilter(source: query)
+            }
+        }
 
         if self.returning.count > 0 {
             query.sql += " RETURNING " + self.returning.joined(separator: ", ")

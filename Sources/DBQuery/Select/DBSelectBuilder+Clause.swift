@@ -57,7 +57,7 @@ extension DBSelectBuilder {
     /// - Returns: `self` for chaining.
     public func field(_ column: Column, alias columnAlias: String? = nil, as tableAlias: String? = nil) -> Self {
         let table: String
-        if let tableAlias = tableAlias {
+        if let tableAlias {
             table = tableAlias
         } else if let last = currentJoin() {
             table = self.joins[last].alias
@@ -75,6 +75,18 @@ extension DBSelectBuilder {
     }
 
     @discardableResult
+    /// Specify the custom column to be part of the result set of the query.
+    ///
+    ///     Don't forget use the table alias!!!
+    ///
+    /// - Parameter field: Custom column.
+    /// - Returns: `self` for chaining.
+    public func field(_ field: String) -> Self {
+        self.columns += [field]
+        return self
+    }
+
+    @discardableResult
     /// Specify the columns to be part of the result set of the query.
     ///
     /// - Parameters:
@@ -83,7 +95,7 @@ extension DBSelectBuilder {
     /// - Returns: `self` for chaining.
     public func fields(_ columns: Column..., as tableAlias: String? = nil) -> Self {
         let table: String
-        if let tableAlias = tableAlias {
+        if let tableAlias {
             table = tableAlias
         } else if let last = currentJoin() {
             table = self.joins[last].alias
@@ -115,7 +127,6 @@ extension DBSelectBuilder {
 
 // MARK: - GROUP BY / ORDER BY
 extension DBSelectBuilder {
-
     @discardableResult
     /// Adds a `GROUP BY` clause to the query with the specified column.
     ///
@@ -138,7 +149,7 @@ extension DBSelectBuilder {
     /// - Parameters:
     ///   - columns: Name of columns to sort results by.
     ///   - tableAlias: An alternative alias of the name for the external table, default the alias of the base table.
-    ///   - direction: The sort direction for the column.
+    ///   - direction: The sort direction for the `last` column.
     /// - Returns: `self` for chaining.
     public func sort(_ columns: Column..., as tableAlias: String? = nil, direct: DBDirection = .asc) -> Self {
         let table = tableAlias ?? self.alias
@@ -210,5 +221,26 @@ extension DBSelectBuilder {
         }
 
         return try await self.first(limit: nil).get()
+    }
+}
+
+extension DBSelectBuilder {
+    @discardableResult
+    /// Sets a list of table columns on conflict from the sql request.
+    ///
+    /// - Parameter isolation: The type of transaction isolation.
+    /// - Returns: `self` for chaining.
+    public func `for`(_ isolation: SelectIsolation) -> Self {
+        self.isolation = isolation
+        return self
+    }
+
+    @discardableResult
+    /// Sets a list of table columns on conflict from the sql request.
+    ///
+    /// - Returns: `self` for chaining.
+    public func noWait() -> Self {
+        self.isWait = true
+        return self
     }
 }

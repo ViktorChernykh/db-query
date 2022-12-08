@@ -27,7 +27,8 @@ public struct DBJoin: DBFilterSerialize {
     func serialize(source raw: DBRaw) -> DBRaw {
         var joinRaw = DBRaw(
             raw.sql + self.method.serialize() + "JOIN " + self.from,
-            raw.binds)
+            raw.binds
+        )
         if (self.filterAnd.count + self.filterOr.count) > 0 {
             joinRaw.sql += " ON"
             return serializeFilter(source: joinRaw)

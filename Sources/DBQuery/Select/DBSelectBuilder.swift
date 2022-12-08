@@ -30,8 +30,10 @@ public final class DBSelectBuilder<T: DBModel>: DBFilterSerialize {
     public var order: [String] = []
     public var limit: Int? = nil
     public var offset: Int? = nil
-    public var isDistinct: Bool = false
+    public var distinct: [String]? = nil
     public var aggregate: DBAggregate? = nil
+    public var isolation: SelectIsolation? = nil
+    public var isWait: Bool = false
 
     // MARK: - Init
     public init(space: String? = nil, section: String, on database: SQLDatabase) {
@@ -62,7 +64,7 @@ public final class DBSelectBuilder<T: DBModel>: DBFilterSerialize {
         copy.order = self.order
         copy.limit = self.limit
         copy.offset = self.offset
-        copy.isDistinct = self.isDistinct
+        copy.distinct = self.distinct
         copy.aggregate = self.aggregate
 
         return copy
@@ -75,7 +77,16 @@ public final class DBSelectBuilder<T: DBModel>: DBFilterSerialize {
             query.sql += "WITH " + with.sql + " "
             query.binds += with.binds
         }
-        query.sql += "SELECT "
+        query.sql += "SELECT"
+
+        if let distinct {
+            if distinct.count == 0 {
+                query.sql += " DISTINCT"
+            } else {
+                query.sql += " DISTINCT ON (\(distinct.joined(separator: ", "))))"
+            }
+        }
+
         var cols = ""
         if self.columns.count == 0 {
             cols = "\"\(self.alias)\".*"
@@ -83,25 +94,21 @@ public final class DBSelectBuilder<T: DBModel>: DBFilterSerialize {
             cols = self.columns.joined(separator: ", ")
         }
 
-        if isDistinct {
-            cols = "DISTINCT ON (\(cols))"
-        }
-
-        if let aggregate = self.aggregate {
+        if let aggregate {
             switch aggregate {
             case .avg:
-                query.sql += "avg(\(cols))"
+                query.sql += " avg(\(cols))"
             case .count:
-                query.sql += "count(\(cols))"
+                query.sql += " count(\(cols))"
             case .max:
-                query.sql += "max(\(cols))"
+                query.sql += " max(\(cols))"
             case .min:
-                query.sql += "min(\(cols))"
+                query.sql += " min(\(cols))"
             case .sum:
-                query.sql += "sum(\(cols))"
+                query.sql += " sum(\(cols))"
             }
         } else {
-            query.sql += cols
+            query.sql += " " + cols
         }
 
         query.sql += " FROM " + self.from.joined(separator: ", ")
@@ -128,6 +135,12 @@ public final class DBSelectBuilder<T: DBModel>: DBFilterSerialize {
         }
         if let offset = self.offset {
             query.sql += " OFFSET \(offset)"
+        }
+        if let isolation {
+            query.sql += "FOR \(isolation.rawValue)"
+            if self.isWait {
+                query.sql += " NOWAIT"
+            }
         }
         query.sql += ";"
 #if DEBUG

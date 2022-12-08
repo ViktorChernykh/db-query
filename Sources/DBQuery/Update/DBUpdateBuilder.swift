@@ -60,8 +60,8 @@ public final class DBUpdateBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
                         query.sql += sets[i].sql + ", "
                     case 1:
                         if let val = binds[0] as? String,      // This for Database types
-                            String(val.prefix(1)) == "\'",
-                            String(val.suffix(1)) == "\'" {
+                           String(val.prefix(1)) == "\'",
+                           String(val.suffix(1)) == "\'" {
                             query.sql += "\(sets[i].sql)\(val), "
                             continue
                         }
@@ -69,6 +69,13 @@ public final class DBUpdateBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
                         j += 1
                         query.sql += sets[i].sql + "$\(j), "
                     default:
+                        if let val = binds[0] as? String,      // This for Database types
+                           String(val.prefix(1)) == "\'",
+                           String(val.suffix(1)) == "\'" {
+                            let vals = binds.compactMap { $0 as? String }.joined(separator: ", ")
+                            query.sql += "\(sets[i].sql)(\(vals)), "
+                            continue
+                        }
                         query.binds += binds
                         query.sql += sets[i].sql + "("
                         for _ in 0..<binds.count - 1 {
@@ -86,8 +93,8 @@ public final class DBUpdateBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
                 query.sql += sets[last].sql
             case 1:
                 if let val = binds[0] as? String,      // This for Database types
-                    String(val.prefix(1)) == "\'",
-                    String(val.suffix(1)) == "\'" {
+                   String(val.prefix(1)) == "\'",
+                   String(val.suffix(1)) == "\'" {
                     query.sql += "\(sets[last].sql)\(val)"
                 } else {
                     query.binds += binds
@@ -95,21 +102,28 @@ public final class DBUpdateBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
                     query.sql += sets[last].sql + "$\(j)"
                 }
             default:
-                query.binds += binds
-                query.sql += sets[last].sql + "("
-                for _ in 0..<binds.count - 1 {
+                if let val = binds[0] as? String,      // This for Database types
+                   String(val.prefix(1)) == "\'",
+                   String(val.suffix(1)) == "\'" {
+                    let vals = binds.compactMap { $0 as? String }.joined(separator: ", ")
+                    query.sql += "\(sets[last].sql)(\(vals))"
+                } else {
+                    query.binds += binds
+                    query.sql += sets[last].sql + "("
+                    for _ in 0..<binds.count - 1 {
+                        j += 1
+                        query.sql += "$\(j), "
+                    }
                     j += 1
-                    query.sql += "$\(j), "
+                    query.sql += "$\(j))"
                 }
-                j += 1
-                query.sql += "$\(j))"
             }
         }
 
         if self.from.count > 0 {
             query.sql += " FROM " + self.from.joined(separator: ", ")
         }
-
+        
         if let cursor = self.cursor {
             query.sql += " WHERE CURRENT OF \(cursor)"
         } else {
@@ -118,9 +132,11 @@ public final class DBUpdateBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
                 query = serializeFilter(source: query)
             }
         }
+
         if self.returning.count > 0 {
             query.sql += " RETURNING " + self.returning.joined(separator: ", ")
         }
+
         query.sql += ";"
 #if DEBUG
         print(query.sql)
