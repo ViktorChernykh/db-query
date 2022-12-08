@@ -13,6 +13,6 @@ public struct Column: ExpressibleByStringLiteral {
 
 extension Column: CustomStringConvertible {
     public var description: String {
-        key
+        "\"" + key + "\""
     }
 }
