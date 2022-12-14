@@ -37,7 +37,7 @@ extension DBUpdateBuilder {
 	/// - Returns: `self` for chaining.
 	public func returning(_ fields: Column...) -> Self {
 		self.returning = fields.map {
-			DBColumn(table: alias, $0).serialize()
+			DBColumn(table: nil, $0).serialize()
 		}
 		return self
 	}
