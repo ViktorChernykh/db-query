@@ -6,6 +6,6 @@
 //
 
 public protocol DBSchema {
-    static var alias: String { get }
-    static var schema: String { get }
+	static var alias: String { get }
+	static var schema: String { get }
 }

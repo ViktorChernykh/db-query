@@ -6,6 +6,6 @@
 //
 
 public enum DBCondition: String {
-    case and = " AND "
-    case or = " OR "
+	case and = " AND "
+	case or = " OR "
 }

@@ -6,6 +6,6 @@
 //
 
 public struct DBInsert {
-    // MARK: Stored properties
-    public var values: [Encodable] = []
+	// MARK: Stored properties
+	public var values: [Encodable] = []
 }

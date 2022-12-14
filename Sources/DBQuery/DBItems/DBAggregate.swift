@@ -6,9 +6,9 @@
 //
 
 public enum DBAggregate: String {
-    case avg
-    case count
-    case max
-    case min
-    case sum
+	case avg
+	case count
+	case max
+	case min
+	case sum
 }
