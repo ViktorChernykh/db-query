@@ -18,8 +18,8 @@ public final class DBSelectBuilder<T: DBModel>: DBFilterSerialize {
 	public let section: String
 	public let alias: String
 
-	public var with: DBRaw? = nil
-	public var columns: [String] = []
+	public var with: [DBRaw] = []
+	public var columns: [DBRaw] = []
 	public var from: [String] = []
 	public var filterAnd: [DBRaw] = []
 	public var filterOr: [DBRaw] = []
@@ -70,12 +70,13 @@ public final class DBSelectBuilder<T: DBModel>: DBFilterSerialize {
 		return copy
 	}
 
-	public func serialize() -> SQLRaw {
+	public func serialize(end: String = "") -> SQLRaw {
 		var query = DBRaw("")
 
-		if let with = self.with {
-			query.sql += "WITH " + with.sql + " "
-			query.binds += with.binds
+		if with.count > 0 {
+			query.sql += "WITH "
+			query.sql += with.map { $0.sql }.joined(separator: ", ") + " "
+			query.binds += with.flatMap { $0.binds }
 		}
 		query.sql += "SELECT"
 
@@ -91,7 +92,8 @@ public final class DBSelectBuilder<T: DBModel>: DBFilterSerialize {
 		if self.columns.count == 0 {
 			cols = "\"\(self.alias)\".*"
 		} else {
-			cols = self.columns.joined(separator: ", ")
+			cols = self.columns.map { $0.sql }.joined(separator: ", ")
+			query.binds += self.columns.flatMap { $0.binds }
 		}
 
 		if let aggregate {
@@ -142,7 +144,7 @@ public final class DBSelectBuilder<T: DBModel>: DBFilterSerialize {
 				query.sql += " NOWAIT"
 			}
 		}
-		query.sql += ";"
+		query.sql += end
 #if DEBUG
 		print(query.sql)
 #endif

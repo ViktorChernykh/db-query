@@ -13,10 +13,10 @@ extension DBSelectBuilder {
 	@discardableResult
 	/// Adds the raw `with` subquery to the select query.
 	///
-	/// - Parameter sql: DBRaw `with` query.
+	/// - Parameter sql: `with` query.
 	/// - Returns: `self` for chaining.
 	public func with(_ sql: DBRaw) -> Self {
-		self.with = sql
+		self.with.append(sql)
 
 		return self
 	}
@@ -41,15 +41,6 @@ extension DBSelectBuilder {
 	@discardableResult
 	/// Specify the column to be part of the result set of the query.
 	///
-	/// - Returns: `self` for chaining.
-	public func fields() -> Self {
-		self.columns = ["\"\(self.alias)\".*"]
-
-		return self
-	}
-	@discardableResult
-	/// Specify the column to be part of the result set of the query.
-	///
 	/// - Parameters:
 	///   - column: The name of the column.
 	///   - columnAlias: An alias for the column name.
@@ -63,13 +54,13 @@ extension DBSelectBuilder {
 			table = self.joins[last].alias
 		} else {
 			table = self.alias
-			if self.columns.count == 1, self.columns[0] == "\"\(self.alias)\".*" {
+			if self.columns.count == 1, self.columns[0].sql == "\"\(self.alias)\".*" {
 				self.columns = []
 			}
 		}
 
 		let col = DBColumn(table: table, column, alias: columnAlias).serialize()
-		self.columns.append(col)
+		self.columns.append(DBRaw(col))
 
 		return self
 	}
@@ -82,7 +73,27 @@ extension DBSelectBuilder {
 	/// - Parameter field: Custom column.
 	/// - Returns: `self` for chaining.
 	public func field(_ field: String) -> Self {
-		self.columns += [field]
+		self.columns += [DBRaw(field)]
+		return self
+	}
+
+	@discardableResult
+	/// Specify the custom column to be part of the result set of the query.
+	///
+	/// - Parameter sql: `field` subquery.
+	/// - Returns: `self` for chaining.
+	public func field(_ sql: DBRaw) -> Self {
+		self.columns += [sql]
+		return self
+	}
+
+	@discardableResult
+	/// Specify the column to be part of the result set of the query.
+	///
+	/// - Returns: `self` for chaining.
+	public func fields() -> Self {
+		self.columns = [DBRaw("\"\(self.alias)\".*")]
+
 		return self
 	}
 
@@ -101,13 +112,13 @@ extension DBSelectBuilder {
 			table = self.joins[last].alias
 		} else {
 			table = self.alias
-			if self.columns.count == 1, self.columns[0] == "\"\(self.alias)\".*" {
+			if self.columns.count == 1, self.columns[0].sql == "\"\(self.alias)\".*" {
 				self.columns = []
 			}
 		}
 
 		self.columns += columns.map {
-			DBColumn(table: table, $0).serialize()
+			DBRaw(DBColumn(table: table, $0).serialize())
 		}
 
 		return self
@@ -214,10 +225,10 @@ extension DBSelectBuilder {
 		let alias = tableAlias ?? self.alias
 		if columns.count > 0 {
 			self.columns = columns.map {
-				DBColumn(table: alias, $0).serialize()
+				DBRaw(DBColumn(table: alias, $0).serialize())
 			}
 		} else {
-			self.columns = ["\"\(alias)\".*"]
+			self.columns = [DBRaw("\"\(alias)\".*")]
 		}
 
 		return try await self.first(limit: nil).get()

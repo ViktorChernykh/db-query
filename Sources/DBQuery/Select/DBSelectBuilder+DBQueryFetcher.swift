@@ -103,7 +103,7 @@ extension DBSelectBuilder {
 	///
 	/// The returned future will signal completion of the query.
 	public func run(_ handler: @escaping (SQLRow) -> ()) -> EventLoopFuture<Void> {
-		return self.database.execute(sql: self.serialize()) { row in
+		return self.database.execute(sql: self.serialize(end: ";")) { row in
 			handler(row)
 		}
 	}
@@ -112,8 +112,8 @@ extension DBSelectBuilder {
 	///
 	///     builder.run()
 	///
-	/// - returns: A future signaling completion.
+	/// - returns: A future signalling completion.
 	public func run() -> EventLoopFuture<Void> {
-		return self.database.execute(sql: self.serialize()) { _ in }
+		return self.database.execute(sql: self.serialize(end: ";")) { _ in }
 	}
 }

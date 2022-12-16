@@ -17,7 +17,7 @@ public final class DBInsertBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
 	public let section: String
 	public let alias: String
 
-	public var with: DBRaw? = nil
+	public var with: [DBRaw] = []
 	public var inserts: [DBInsert] = []
 	public var columns: [String] = []
 
@@ -38,12 +38,15 @@ public final class DBInsertBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
 		self.alias = T.alias
 	}
 
-	public func serialize() -> SQLRaw {
+	public func serialize(end: String = "") -> SQLRaw {
 		var query = DBRaw("")
 
-		if let with = self.with {
-			query.sql += "WITH " + with.sql + " "
-			query.binds += with.binds
+		if with.count > 0 {
+			query.sql += "WITH "
+			query.sql += with.map { $0.sql }.joined(separator: ", ") + " "
+			for item in with {
+				query.binds += item.binds
+			}
 		}
 		var j = query.binds.count
 
@@ -118,7 +121,7 @@ public final class DBInsertBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
 		if self.returning.count > 0 {
 			query.sql += " RETURNING " + self.returning.joined(separator: ", ")
 		}
-		query.sql += ";"
+		query.sql += end
 #if DEBUG
 		print(query.sql)
 #endif

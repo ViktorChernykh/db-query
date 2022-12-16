@@ -17,7 +17,7 @@ public final class DBUpdateBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
 	public let section: String
 	public let alias: String
 
-	public var with: DBRaw? = nil
+	public var with: [DBRaw] = []
 	public var update: String = ""
 	public var sets: [DBRaw] = []
 	public var from: [String] = []
@@ -39,12 +39,15 @@ public final class DBUpdateBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
 		)
 	}
 
-	public func serialize() -> SQLRaw {
+	public func serialize(end: String = "") -> SQLRaw {
 		var query = DBRaw("")
 
-		if let with = self.with {
-			query.sql += "WITH " + with.sql + " "
-			query.binds += with.binds
+		if with.count > 0 {
+			query.sql += "WITH "
+			query.sql += with.map { $0.sql }.joined(separator: ", ") + " "
+			for item in with {
+				query.binds += item.binds
+			}
 		}
 		query.sql += "UPDATE " + self.update
 		var j = query.binds.count
@@ -137,7 +140,7 @@ public final class DBUpdateBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
 			query.sql += " RETURNING " + self.returning.joined(separator: ", ")
 		}
 
-		query.sql += ";"
+		query.sql += end
 #if DEBUG
 		print(query.sql)
 #endif
