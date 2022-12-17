@@ -64,6 +64,12 @@ extension DBFilterSerialize {
 						query.sql += sql + "$\(j)\(conj)"
 					}
 				default:
+					if binds.count == 2, sql.hasSuffix("BETWEEN ") {
+						j += 1
+						query.sql += sql + "$\(j) AND $\(j + 1)\(conj)"
+						j += 1
+						continue
+					}
 					if let val = binds[0] as? String,      // This for Database types
 					   String(val.prefix(1)) == "\'",
 					   String(val.suffix(1)) == "\'" {

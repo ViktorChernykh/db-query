@@ -22,7 +22,7 @@ extension DBSelectBuilder {
 		as tableAlias: String? = nil
 	) -> Self {
 		let alias = tableAlias ?? model.alias
-		let joinTable = DBTable(self.space, table: model.schema + self.section, as: alias).serialize()
+		let joinTable = DBTable(table: model.schema + self.section, as: alias).serialize()
 		let join = DBJoin(alias: alias, from: joinTable, method: method)
 		self.joins.append(join)
 
@@ -32,28 +32,36 @@ extension DBSelectBuilder {
 	/// Common
 	///
 	///     final class Star: DBModel {
+	///     	static let alias = v1.alias
 	///         static let schema = v1.schema
+	///
 	///         id : UUID
 	///         name: String
 	///
 	///         struct v1 {
 	///             static let schema = "stars"
-	///             static let id = Column("id")
-	///             static let name = Column("name")
+	///             static let alias = "s"
+	///
+	///             static let id = Column("id", Self.alias)
+	///             static let name = Column("name", Self.alias)
 	///         }
 	///     }
 	///
 	///     final class Planet: DBModel {
+	///     	static let alias = v1.alias
 	///         static let schema = v1.schema
+	///
 	///         id : UUID
 	///         name: String
 	///         starId: UUID
 	///
 	///         struct v1 {
 	///             static let schema = "planets"
-	///             static let id = Column("id")
-	///             static let name = Column("name")
-	///             static let starId = Column("star_id")
+	///				static let alias = "p"
+	///
+	///             static let id = Column("id", Self.alias)
+	///             static let name = Column("name", Self.alias)
+	///             static let starId = Column("star_id", Self.alias)
 	///         }
 	///     }
 	///
@@ -71,15 +79,13 @@ extension DBSelectBuilder {
 	///     .join(Planet.self, .left)
 	///     .on(p.starId == s.id)...
 	///
-	/// - Parameters:
-	///   - data: The struct with source data for a binary expression.
-	///   - rightAlias: An alias for right table.
+	/// - Parameter data: The struct with source data for a binary expression.
 	/// - Returns: `self` for chaining.
-	public func on(_ data: ColumnColumn, _ rightAlias: String) -> Self {
-		let last = lastJoin()
-		let lhs = DBColumn(table: self.joins[last].alias, data.lhs).serialize()
-		let rhs = DBColumn(table: rightAlias, data.rhs).serialize()
+	public func on(_ data: ColumnColumn) -> Self {
+		let lhs = DBColumn(data.lhs).serialize()
+		let rhs = DBColumn(data.rhs).serialize()
 
+		let last = lastJoin()
 		self.joins[last].filterAnd.append(DBRaw(lhs + data.op + rhs))
 		return self
 	}
@@ -94,9 +100,9 @@ extension DBSelectBuilder {
 	/// - Parameter data: The struct with source data for a binary expression.
 	/// - Returns: `self` for chaining.
 	public func on(_ data: ColumnBind) -> Self {
-		let last = lastJoin()
-		let lhs = DBColumn(table: self.joins[last].alias, data.lhs).serialize()
+		let lhs = DBColumn(data.lhs).serialize()
 
+		let last = lastJoin()
 		self.joins[last].filterAnd.append(DBRaw(lhs + data.op, [data.rhs]))
 		return self
 	}
@@ -111,9 +117,9 @@ extension DBSelectBuilder {
 	/// - Parameter data: The struct with source data for a binary expression.
 	/// - Returns: `self` for chaining.
 	public func on(_ data: ColumnBinds) -> Self {
-		let last = lastJoin()
-		let lhs = DBColumn(table: self.joins[last].alias, data.lhs).serialize()
+		let lhs = DBColumn(data.lhs).serialize()
 
+		let last = lastJoin()
 		self.joins[last].filterAnd.append(DBRaw(lhs + data.op, data.rhs))
 		return self
 	}
@@ -126,14 +132,14 @@ extension DBSelectBuilder {
 	///     .on(p.name, "ILIKE", "%\(name)%")...
 	///
 	/// - Parameters:
-	///   - data: The struct with source data for a binary expression.
+	///   - column: The struct with source data for a binary expression.
 	///   - custom: Custom operation for binary expression.
 	///   - bind: The right value of the condition.
 	/// - Returns: `self` for chaining.
-	public func on(_ data: Column, _ custom: String, _ bind: Encodable) -> Self {
-		let last = lastJoin()
-		let lhs = DBColumn(table: self.joins[last].alias, data).serialize()
+	public func on(_ column: Column, _ custom: String, _ bind: Encodable) -> Self {
+		let lhs = DBColumn(column).serialize()
 
+		let last = lastJoin()
 		self.joins[last].filterAnd.append(DBRaw(lhs + " \(custom) ", [bind]))
 		return self
 	}
@@ -146,15 +152,13 @@ extension DBSelectBuilder {
 	///     .join(Planet.self, .left)
 	///     .orOn(p.starId == s.id")...
 	///
-	/// - Parameters:
-	///   - data: The struct with source data for a binary expression.
-	///   - rightAlias: An alias for right table.
+	/// - Parameter data: The struct with source data for a binary expression.
 	/// - Returns: `self` for chaining.
-	public func orOn(_ data: ColumnColumn, _ rightAlias: String) -> Self {
-		let last = lastJoin()
-		let lhs = DBColumn(table: self.joins[last].alias, data.lhs).serialize()
-		let rhs = DBColumn(table: rightAlias, data.rhs).serialize()
+	public func orOn(_ data: ColumnColumn) -> Self {
+		let lhs = DBColumn(data.lhs).serialize()
+		let rhs = DBColumn(data.rhs).serialize()
 
+		let last = lastJoin()
 		self.joins[last].filterOr.append(DBRaw(lhs + data.op + rhs))
 		return self
 	}
@@ -169,9 +173,9 @@ extension DBSelectBuilder {
 	/// - Parameter data: The struct with source data for a binary expression.
 	/// - Returns: `self` for chaining.
 	public func orOn(_ data: ColumnBind) -> Self {
-		let last = lastJoin()
-		let lhs = DBColumn(table: self.joins[last].alias, data.lhs).serialize()
+		let lhs = DBColumn(data.lhs).serialize()
 
+		let last = lastJoin()
 		self.joins[last].filterOr.append(DBRaw(lhs + data.op, [data.rhs]))
 		return self
 	}
@@ -186,9 +190,9 @@ extension DBSelectBuilder {
 	/// - Parameter data: The struct with source data for a binary expression.
 	/// - Returns: `self` for chaining.
 	public func orOn(_ data: ColumnBinds) -> Self {
-		let last = lastJoin()
-		let lhs = DBColumn(table: self.joins[last].alias, data.lhs).serialize()
+		let lhs = DBColumn(data.lhs).serialize()
 
+		let last = lastJoin()
 		self.joins[last].filterOr.append(DBRaw(lhs + data.op, data.rhs))
 		return self
 	}
@@ -201,14 +205,14 @@ extension DBSelectBuilder {
 	///     .orOn(p.name, "ILIKE", "%\(name)%")...
 	///
 	/// - Parameters:
-	///   - data: The struct with source data for a binary expression.
+	///   - column: The struct with source data for a binary expression.
 	///   - custom: A custom operation for binary expression.
 	///   - bind: The right value of the condition.
 	/// - Returns: `self` for chaining.
-	public func orOn(_ data: Column, _ custom: String, _ bind: Encodable) -> Self {
-		let last = lastJoin()
-		let lhs = DBColumn(table: self.joins[last].alias, data).serialize()
+	public func orOn(_ column: Column, _ custom: String, _ bind: Encodable) -> Self {
+		let lhs = DBColumn(column).serialize()
 
+		let last = lastJoin()
 		self.joins[last].filterOr.append(DBRaw(lhs + " \(custom) ", [bind]))
 		return self
 	}

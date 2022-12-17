@@ -11,12 +11,12 @@ extension DBSelectBuilder {
 	/// Sets the distinct value to true for serializing.
 	/// - Parameters:
 	///   - columns: List of columns for distinct.
-	///   - alterAlias: alias for columns, by default - the alias from the first table in `FROM`.
+	///   - tableAlias: alias for table, by default - the alias from the first table in `FROM`.
 	/// - Returns: `self` for chaining.
-	public func distinct(_ columns: Column..., as alterAlias: String? = nil) -> Self {
-		let alias = alterAlias ?? self.alias
+	public func distinct(_ columns: Column..., as tableAlias: String? = nil) -> Self {
 		self.distinct = columns.map {
-			DBColumn(table: alias, $0).serialize()
+			let table = tableAlias ?? $0.table
+			return DBColumn(table: table, $0.key).serialize()
 		}
 		return self
 	}

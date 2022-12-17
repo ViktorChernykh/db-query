@@ -15,8 +15,8 @@ extension DBUpdateBuilder {
 	/// - Parameter data: The struct with source data for a binary expression.
 	/// - Returns: `self` for chaining.
 	public func filter(_ data: ColumnColumn) -> Self {
-		let lhs = DBColumn(table: nil, data.lhs).serialize()
-		let rhs = DBColumn(table: nil, data.rhs).serialize()
+		let lhs = DBColumn(table: nil, data.lhs.key).serialize()
+		let rhs = DBColumn(table: nil, data.rhs.key).serialize()
 		self.filterAnd.append(DBRaw(lhs + data.op + rhs))
 		return self
 	}
@@ -29,7 +29,7 @@ extension DBUpdateBuilder {
 	/// - Parameter data: The struct with source data for a binary expression.
 	/// - Returns: `self` for chaining.
 	public func filter(_ data: ColumnBind) -> Self {
-		let lhs = DBColumn(table: nil, data.lhs).serialize()
+		let lhs = DBColumn(table: nil, data.lhs.key).serialize()
 		self.filterAnd.append(DBRaw(lhs + data.op, [data.rhs]))
 		return self
 	}
@@ -42,7 +42,7 @@ extension DBUpdateBuilder {
 	/// - Parameter data: The struct with source data for a binary expression.
 	/// - Returns: `self` for chaining.
 	public func filter(_ data: ColumnBinds) -> Self {
-		let lhs = DBColumn(table: nil, data.lhs).serialize()
+		let lhs = DBColumn(table: nil, data.lhs.key).serialize()
 		self.filterAnd.append(DBRaw(lhs + data.op, data.rhs))
 		return self
 	}
@@ -58,7 +58,7 @@ extension DBUpdateBuilder {
 	///   - bind: The right value of the condition.
 	/// - Returns: `self` for chaining.
 	public func filter(_ column: Column, _ custom: String, _ bind: Encodable) -> Self {
-		let lhs = DBColumn(table: nil, column).serialize()
+		let lhs = DBColumn(table: nil, column.key).serialize()
 		self.filterAnd.append(DBRaw(lhs + " \(custom) ", [bind]))
 		return self
 	}
@@ -74,7 +74,7 @@ extension DBUpdateBuilder {
 	///   - binds: The right values of the condition.
 	/// - Returns: `self` for chaining.
 	public func filter(_ column: Column, _ custom: String, _ binds: [Encodable]) -> Self {
-		let lhs = DBColumn(table: nil, column).serialize()
+		let lhs = DBColumn(table: nil, column.key).serialize()
 		self.filterAnd.append(DBRaw(lhs + " \(custom) ", binds))
 		return self
 	}
@@ -100,9 +100,8 @@ extension DBUpdateBuilder {
 	/// - Parameter data: The struct with source data for a binary expression.
 	/// - Returns: `self` for chaining.
 	public func orFilter(_ data: ColumnColumn) -> Self {
-		let lhs = DBColumn(table: nil, data.lhs).serialize()
-		let rhs = DBColumn(table: nil, data.rhs).serialize()
-
+		let lhs = DBColumn(table: nil, data.lhs.key).serialize()
+		let rhs = DBColumn(table: nil, data.rhs.key).serialize()
 		self.filterOr.append(DBRaw(lhs + data.op + rhs))
 		return self
 	}
@@ -115,7 +114,7 @@ extension DBUpdateBuilder {
 	/// - Parameter data: The struct with source data for a binary expression.
 	/// - Returns: `self` for chaining.
 	public func orFilter(_ data: ColumnBind) -> Self {
-		let lhs = DBColumn(table: nil, data.lhs).serialize()
+		let lhs = DBColumn(table: nil, data.lhs.key).serialize()
 		self.filterOr.append(DBRaw(lhs + data.op, [data.rhs]))
 		return self
 	}
@@ -128,7 +127,7 @@ extension DBUpdateBuilder {
 	/// - Parameter data: The struct with source data for a binary expression.
 	/// - Returns: `self` for chaining.
 	public func orFilter(_ data: ColumnBinds) -> Self {
-		let lhs = DBColumn(table: nil, data.lhs).serialize()
+		let lhs = DBColumn(table: nil, data.lhs.key).serialize()
 		self.filterOr.append(DBRaw(lhs + data.op, data.rhs))
 		return self
 	}
@@ -144,7 +143,7 @@ extension DBUpdateBuilder {
 	///   - bind: The right value of the condition.
 	/// - Returns: `self` for chaining.
 	public func orFilter(_ column: Column, _ custom: String, _ bind: Encodable) -> Self {
-		let lhs = DBColumn(table: nil, column).serialize()
+		let lhs = DBColumn(table: nil, column.key).serialize()
 		self.filterOr.append(DBRaw(lhs + " \(custom) ", [bind]))
 		return self
 	}
@@ -160,7 +159,7 @@ extension DBUpdateBuilder {
 	///   - binds: The right values of the condition.
 	/// - Returns: `self` for chaining.
 	public func orFilter(_ column: Column, _ custom: String, _ binds: [Encodable]) -> Self {
-		let lhs = DBColumn(table: nil, column).serialize()
+		let lhs = DBColumn(table: nil, column.key).serialize()
 		self.filterOr.append(DBRaw(lhs + " \(custom) ", binds))
 		return self
 	}

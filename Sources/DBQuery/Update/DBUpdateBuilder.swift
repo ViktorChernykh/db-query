@@ -12,7 +12,6 @@ public final class DBUpdateBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
 	/// See `DBQueryFetcher`.
 	public var database: SQLDatabase
 
-	public let space: String?
 	public let schema: String
 	public let section: String
 	public let alias: String
@@ -27,15 +26,14 @@ public final class DBUpdateBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
 	public var returning: [String] = []
 
 	// MARK: - Init
-	public init(space: String? = nil, section: String, on database: SQLDatabase) {
+	public init(section: String, on database: SQLDatabase) {
 		self.database = database
-		self.space = space
 		self.schema = T.schema + section
 		self.section = section
 		self.alias = T.alias
 
 		self.update.append(
-			DBTable(space, table: T.schema + section).serialize()
+			DBTable(table: T.schema + section).serialize()
 		)
 	}
 

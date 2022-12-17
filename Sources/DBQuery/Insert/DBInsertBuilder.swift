@@ -12,7 +12,6 @@ public final class DBInsertBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
 	/// See `DBQueryFetcher`.
 	public var database: SQLDatabase
 
-	public let space: String?
 	public let schema: String
 	public let section: String
 	public let alias: String
@@ -30,9 +29,8 @@ public final class DBInsertBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
 	public var returning: [String] = []
 
 	// MARK: Init
-	public init(space: String? = nil, section: String, on database: SQLDatabase) {
+	public init(section: String, on database: SQLDatabase) {
 		self.database = database
-		self.space = space
 		self.schema = T.schema + section
 		self.section = section
 		self.alias = T.alias
@@ -50,7 +48,7 @@ public final class DBInsertBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
 		}
 		var j = query.binds.count
 
-		let table = DBTable(self.space, table: self.schema, as: self.alias).serialize()
+		let table = DBTable(table: self.schema, as: self.alias).serialize()
 		query.sql += "INSERT INTO \(table)"
 
 		if self.columns.count > 0 {

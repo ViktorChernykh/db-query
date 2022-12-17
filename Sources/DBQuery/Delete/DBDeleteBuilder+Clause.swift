@@ -28,8 +28,8 @@ extension DBDeleteBuilder {
 	///   - tableAlias: The table alias for an `using` model.
 	/// - Returns: `self` for chaining.
 	public func using<F: DBModel>(_ model: F.Type, _ tableAlias: String? = nil) -> Self {
-		let alias = tableAlias ?? model.alias
-		let schema = DBTable(space, table: model.schema + self.section, as: alias)
+		let tAlias = tableAlias ?? model.alias
+		let schema = DBTable(table: model.schema + self.section, as: tAlias)
 		self.using.append(schema.serialize())
 
 		return self
@@ -50,13 +50,12 @@ extension DBDeleteBuilder {
 	/// Sets a list of table columns to returning from the sql request.
 	///
 	/// - Parameters:
-	///   - fields: The list of table columns name.
-	///   - tableAlias: The alternate alias for `using` model.
+	///   - columns: The list of table columns name.
+	///   - alias: The alternate name for field.
 	/// - Returns: `self` for chaining.
-	public func returning(_ fields: Column..., as tableAlias: String? = nil) -> Self {
-		let table = tableAlias ?? self.alias
-		self.returning = fields.map {
-			DBColumn(table: table, $0).serialize()
+	public func returning(_ columns: Column..., as alias: String? = nil) -> Self {
+		self.returning = columns.map {
+			DBColumn($0, alias: alias).serialize()
 		}
 		return self
 	}

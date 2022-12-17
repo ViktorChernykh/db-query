@@ -47,19 +47,14 @@ extension DBSelectBuilder {
 	///   - tableAlias: An alternative alias of the name for the external table, default the alias of the base table.
 	/// - Returns: `self` for chaining.
 	public func field(_ column: Column, alias columnAlias: String? = nil, as tableAlias: String? = nil) -> Self {
-		let table: String
-		if let tableAlias {
-			table = tableAlias
-		} else if let last = currentJoin() {
-			table = self.joins[last].alias
-		} else {
-			table = self.alias
+		if currentJoin() == nil {
 			if self.columns.count == 1, self.columns[0].sql == "\"\(self.alias)\".*" {
 				self.columns = []
 			}
 		}
+		let table = tableAlias ?? column.table
 
-		let col = DBColumn(table: table, column, alias: columnAlias).serialize()
+		let col = DBColumn(table: table, column.key, alias: columnAlias).serialize()
 		self.columns.append(DBRaw(col))
 
 		return self
@@ -105,20 +100,14 @@ extension DBSelectBuilder {
 	///   - tableAlias: An alternative alias of the name for the external table, default the alias of the base table.
 	/// - Returns: `self` for chaining.
 	public func fields(_ columns: Column..., as tableAlias: String? = nil) -> Self {
-		let table: String
-		if let tableAlias {
-			table = tableAlias
-		} else if let last = currentJoin() {
-			table = self.joins[last].alias
-		} else {
-			table = self.alias
+		if currentJoin() == nil {
 			if self.columns.count == 1, self.columns[0].sql == "\"\(self.alias)\".*" {
 				self.columns = []
 			}
 		}
-
 		self.columns += columns.map {
-			DBRaw(DBColumn(table: table, $0).serialize())
+			let table = tableAlias ?? $0.table
+			return DBRaw(DBColumn(table: table, $0.key).serialize())
 		}
 
 		return self
@@ -146,9 +135,9 @@ extension DBSelectBuilder {
 	///   - tableAlias: An alternative alias of the name for the external table, default the alias of the base table.
 	/// - Returns: `self` for chaining.
 	public func groupBy(_ columns: Column..., as tableAlias: String? = nil) -> Self {
-		let table = tableAlias ?? self.alias
 		let fields = columns.map {
-			DBColumn(table: table, $0).serialize()
+			let table = tableAlias ?? $0.table
+			return DBColumn(table: table, $0.key).serialize()
 		}
 		self.group += fields
 		return self
@@ -163,9 +152,9 @@ extension DBSelectBuilder {
 	///   - direction: The sort direction for the `last` column.
 	/// - Returns: `self` for chaining.
 	public func sort(_ columns: Column..., as tableAlias: String? = nil, direct: DBDirection = .asc) -> Self {
-		let table = tableAlias ?? self.alias
 		let fields = columns.map {
-			DBColumn(table: table, $0).serialize() + direct.serialize()
+			let table = tableAlias ?? $0.table
+			return DBColumn(table: table, $0.key).serialize() + direct.serialize()
 		}
 		self.order += fields
 
@@ -222,13 +211,14 @@ extension DBSelectBuilder {
 	}
 
 	private func aggreg(_ columns: [Column], as tableAlias: String?) async throws -> SQLRow? {
-		let alias = tableAlias ?? self.alias
 		if columns.count > 0 {
 			self.columns = columns.map {
-				DBRaw(DBColumn(table: alias, $0).serialize())
+				let table = tableAlias ?? $0.table
+				return DBRaw(DBColumn(table: table, $0.key).serialize())
 			}
 		} else {
-			self.columns = [DBRaw("\"\(alias)\".*")]
+			let table = tableAlias ?? self.alias
+			self.columns = [DBRaw("\"\(table)\".*")]
 		}
 
 		return try await self.first(limit: nil).get()

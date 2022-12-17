@@ -1,7 +1,6 @@
 @testable import FluentKit
 
 extension SchemaBuilder {
-
 	public func field(
 		_ field: Column,
 		_ dataType: DatabaseSchema.DataType,
@@ -24,7 +23,9 @@ extension SchemaBuilder {
 
 	@discardableResult
 	public func compositeIdentifier(over fields: Column...) -> Self {
-		self.constraint(.constraint(.compositeIdentifier(fields.map { .key(FieldKey(stringLiteral: $0.key)) }), name: ""))
+		self.constraint(.constraint(.compositeIdentifier(
+			fields.map { .key(FieldKey(stringLiteral: $0.key)) }
+		), name: ""))
 	}
 
 	@discardableResult
@@ -39,7 +40,6 @@ extension SchemaBuilder {
 	public func foreignKey(
 		_ field: Column,
 		references foreignSchema: String,
-		inSpace foreignSpace: String? = nil,
 		_ foreignField: Column,
 		onDelete: DatabaseSchema.ForeignKeyAction = .noAction,
 		onUpdate: DatabaseSchema.ForeignKeyAction = .noAction,
@@ -49,7 +49,6 @@ extension SchemaBuilder {
 			.foreignKey(
 				[.key(FieldKey(stringLiteral: field.key))],
 				foreignSchema,
-				space: foreignSpace,
 				[.key(FieldKey(stringLiteral: foreignField.key))],
 				onDelete: onDelete,
 				onUpdate: onUpdate
@@ -63,7 +62,6 @@ extension SchemaBuilder {
 	public func foreignKey(
 		_ fields: [Column],
 		references foreignSchema: String,
-		inSpace foreignSpace: String? = nil,
 		_ foreignFields: [Column],
 		onDelete: DatabaseSchema.ForeignKeyAction = .noAction,
 		onUpdate: DatabaseSchema.ForeignKeyAction = .noAction,
@@ -73,7 +71,6 @@ extension SchemaBuilder {
 			.foreignKey(
 				fields.map { .key(FieldKey(stringLiteral: $0.key)) },
 				foreignSchema,
-				space: foreignSpace,
 				foreignFields.map { .key(FieldKey(stringLiteral: $0.key)) },
 				onDelete: onDelete,
 				onUpdate: onUpdate

@@ -46,14 +46,11 @@ extension DBSelectBuilder {
 	///
 	///     .filter(p.name == p.otherField)...
 	///
-	/// - Parameters:
-	///   - data: The struct with source data for a binary expression.
-	///   - leftAlias: An alias for left table.
-	///   - rightAlias: An alias for right table.
+	/// - Parameter data: The struct with source data for a binary expression.
 	/// - Returns: `self` for chaining.
-	public func filter(_ data: ColumnColumn, _ leftAlias: String, _ rightAlias: String) -> Self {
-		let lhs = DBColumn(table: leftAlias, data.lhs).serialize()
-		let rhs = DBColumn(table: rightAlias, data.rhs).serialize()
+	public func filter(_ data: ColumnColumn) -> Self {
+		let lhs = DBColumn(data.lhs).serialize()
+		let rhs = DBColumn(data.rhs).serialize()
 
 		self.filterAnd.append(DBRaw(lhs + data.op + rhs))
 		return self
@@ -64,13 +61,10 @@ extension DBSelectBuilder {
 	///
 	///     .filter(p.name == "Earth")...
 	///
-	/// - Parameters:
-	///   - data: The struct with source data for a binary expression.
-	///   - leftAlias: An alias for the left table, by default - the alias from the first table in `FROM`.
+	/// - Parameter data: The struct with source data for a binary expression.
 	/// - Returns: `self` for chaining.
-	public func filter(_ data: ColumnBind, _ leftAlias: String? = nil) -> Self {
-		let table = leftAlias ?? self.alias
-		let lhs = DBColumn(table: table, data.lhs).serialize()
+	public func filter(_ data: ColumnBind) -> Self {
+		let lhs = DBColumn(data.lhs).serialize()
 
 		self.filterAnd.append(DBRaw(lhs + data.op, [data.rhs]))
 		return self
@@ -81,13 +75,10 @@ extension DBSelectBuilder {
 	///
 	///     .filter(p.name ~~ ["Earth", "Mars"])...
 	///
-	/// - Parameters:
-	///   - data: The struct with source data for a binary expression.
-	///   - leftAlias: An alias for the left table, by default - the alias from the first table in `FROM`.
+	/// - Parameter data: The struct with source data for a binary expression.
 	/// - Returns: `self` for chaining.
-	public func filter(_ data: ColumnBinds, _ leftAlias: String? = nil) -> Self {
-		let table = leftAlias ?? self.alias
-		let lhs = DBColumn(table: table, data.lhs).serialize()
+	public func filter(_ data: ColumnBinds) -> Self {
+		let lhs = DBColumn(data.lhs).serialize()
 
 		self.filterAnd.append(DBRaw(lhs + data.op, data.rhs))
 		return self
@@ -102,11 +93,9 @@ extension DBSelectBuilder {
 	///   - column: The left values of the condition.
 	///   - custom: An custom operation for a binary expression.
 	///   - bind: The right value of the condition.
-	///   - leftAlias: alias for the left table, by default - the alias from the first table in `FROM`.
 	/// - Returns: `self` for chaining.
-	public func filter(_ column: Column, _ custom: String, _ bind: Encodable, _ leftAlias: String? = nil) -> Self {
-		let table = leftAlias ?? self.alias
-		let lhs = DBColumn(table: table, column).serialize()
+	public func filter(_ column: Column, _ custom: String, _ bind: Encodable) -> Self {
+		let lhs = DBColumn(column).serialize()
 
 		self.filterAnd.append(DBRaw(lhs + " \(custom) ", [bind]))
 		return self
@@ -115,8 +104,7 @@ extension DBSelectBuilder {
 	@discardableResult
 	/// Creates binary expression from struct with source data to `WHERE` condition.
 	///
-	/// - Parameters:
-	///   - sql: DBRaw.
+	/// - Parameter sql: DBRaw.
 	/// - Returns: `self` for chaining.
 	public func filter(_ sql: DBRaw) -> Self {
 		self.filterAnd.append(sql)
@@ -130,14 +118,11 @@ extension DBSelectBuilder {
 	///
 	///     .orFilter(p.name == p.otherField)...
 	///
-	/// - Parameters:
-	///   - data: The struct with source data for a binary expression.
-	///   - leftAlias: An alias for left table.
-	///   - rightAlias: An alias for right table.
+	/// - Parameter data: The struct with source data for a binary expression.
 	/// - Returns: `self` for chaining.
-	public func orFilter(_ data: ColumnColumn, _ leftAlias: String, _ rightAlias: String) -> Self {
-		let lhs = DBColumn(table: leftAlias, data.lhs).serialize()
-		let rhs = DBColumn(table: rightAlias, data.rhs).serialize()
+	public func orFilter(_ data: ColumnColumn) -> Self {
+		let lhs = DBColumn(data.lhs).serialize()
+		let rhs = DBColumn(data.rhs).serialize()
 
 		self.filterOr.append(DBRaw(lhs + data.op + rhs))
 		return self
@@ -148,13 +133,10 @@ extension DBSelectBuilder {
 	///
 	///     .orFilter(p.name == "Earth")...
 	///
-	/// - Parameters:
-	///   - data: The struct with source data for a binary expression.
-	///   - leftAlias: An alias for the left table, by default - the alias from the first table in `FROM`.
+	/// - Parameter data: The struct with source data for a binary expression.
 	/// - Returns: `self` for chaining.
-	public func orFilter(_ data: ColumnBind, _ leftAlias: String? = nil) -> Self {
-		let table = leftAlias ?? self.alias
-		let lhs = DBColumn(table: table, data.lhs).serialize()
+	public func orFilter(_ data: ColumnBind) -> Self {
+		let lhs = DBColumn(data.lhs).serialize()
 
 		self.filterOr.append(DBRaw(lhs + data.op, [data.rhs]))
 		return self
@@ -165,13 +147,10 @@ extension DBSelectBuilder {
 	///
 	///     .orFilter(p.name ~~ ["Earth", "Mars"])...
 	///
-	/// - Parameters:
-	///   - data: The struct with source data for a binary expression.
-	///   - leftAlias: An alias for the left table, by default - the alias from the first table in `FROM`.
+	/// - Parameter data: The struct with source data for a binary expression.
 	/// - Returns: `self` for chaining.
-	public func orFilter(_ data: ColumnBinds, _ leftAlias: String? = nil) -> Self {
-		let table = leftAlias ?? self.alias
-		let lhs = DBColumn(table: table, data.lhs).serialize()
+	public func orFilter(_ data: ColumnBinds) -> Self {
+		let lhs = DBColumn(data.lhs).serialize()
 
 		self.filterOr.append(DBRaw(lhs + data.op, data.rhs))
 		return self
@@ -186,11 +165,9 @@ extension DBSelectBuilder {
 	///   - column: The left values of the condition.
 	///   - custom: A custom operation for a binary expression.
 	///   - bind: The right value of the condition.
-	///   - leftAlias: An alias for the left table, by default - the alias from the first table in `FROM`.
 	/// - Returns: `self` for chaining.
-	public func orFilter(_ column: Column, _ custom: String, _ bind: Encodable, _ leftAlias: String? = nil) -> Self {
-		let table = leftAlias ?? self.alias
-		let lhs = DBColumn(table: table, column).serialize()
+	public func orFilter(_ column: Column, _ custom: String, _ bind: Encodable) -> Self {
+		let lhs = DBColumn(column).serialize()
 
 		self.filterOr.append(DBRaw(lhs + " \(custom) ", [bind]))
 		return self
@@ -199,8 +176,7 @@ extension DBSelectBuilder {
 	@discardableResult
 	/// Creates binary expression from struct with source data to `WHERE` condition.
 	///
-	/// - Parameters:
-	///   - sql: DBRaw.
+	/// - Parameter sql: DBRaw.
 	/// - Returns: `self` for chaining.
 	public func orFilter(_ sql: DBRaw) -> Self {
 		self.filterOr.append(sql)

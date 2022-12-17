@@ -21,11 +21,11 @@ extension DBInsertBuilder {
 	@discardableResult
 	/// Sets list of table's column names.
 	///
-	/// - Parameter fields: The list of table columns.
+	/// - Parameter columns: The list of table columns.
 	/// - Returns: `self` for chaining.
-	public func fields(_ fields: Column...) -> Self {
-		self.columns += fields.map {
-			DBColumn(table: self.alias, $0).serialize()
+	public func fields(_ columns: Column...) -> Self {
+		self.columns += columns.map {
+			DBColumn($0).serialize()
 		}
 		return self
 	}
@@ -44,12 +44,11 @@ extension DBInsertBuilder {
 	@discardableResult
 	/// Sets a list of table columns to returning from the sql request.
 	///
-	/// - Parameters:
-	///   - fields: The list of table's column name.
+	/// - Parameter columns: The list of table's column name.
 	/// - Returns: `self` for chaining.
-	public func returning(_ fields: Column...) -> Self {
-		self.returning = fields.map {
-			DBColumn(table: self.alias, $0).serialize()
+	public func returning(_ columns: Column...) -> Self {
+		self.returning = columns.map {
+			DBColumn($0).serialize()
 		}
 		return self
 	}
@@ -67,11 +66,11 @@ extension DBInsertBuilder {
 	@discardableResult
 	/// Sets a list of table columns on conflict from the sql request.
 	///
-	/// - Parameter fields: The list of table column names.
+	/// - Parameter columns: The list of table column names.
 	/// - Returns: `self` for chaining.
-	public func onConflict(_ fields: Column...) -> Self {
-		self.onConflict = fields.map {
-			DBColumn(table: alias, $0).serialize()
+	public func onConflict(_ columns: Column...) -> Self {
+		self.onConflict = columns.map {
+			DBColumn($0).serialize()
 		}
 		return self
 	}
@@ -82,7 +81,7 @@ extension DBInsertBuilder {
 	/// - Parameter data: The struct with source data for a binary expression.
 	/// - Returns: `self` for chaining.
 	public func set(_ data: ColumnBind) -> Self {
-		let lhs = DBColumn(table: nil, data.lhs).serialize()
+		let lhs = DBColumn(table: nil, data.lhs.key).serialize()
 		self.setsForUpdate.append(DBRaw(lhs + data.op, [data.rhs]))
 
 		return self
@@ -92,11 +91,11 @@ extension DBInsertBuilder {
 	/// Adds value to the `SET` operator.
 	///
 	/// - Parameters:
-	///    - field: column to set
+	///    - column: column to set
 	///    - rhs: value for set
 	/// - Returns: `self` for chaining.
-	public func set<T: Encodable>(_ field: Column, to rhs: T) -> Self {
-		let lhs = DBColumn(table: nil, field).serialize()
+	public func set<T: Encodable>(_ column: Column, to rhs: T) -> Self {
+		let lhs = DBColumn(table: nil, column.key).serialize()
 		self.setsForUpdate.append(DBRaw(lhs + " = ", [rhs]))
 
 		return self
@@ -106,11 +105,11 @@ extension DBInsertBuilder {
 	/// Adds value to the `SET` operator.
 	///
 	/// - Parameters:
-	///    - field: column to set
-	///    - rhs: value for set
+	///    - column: column to set
+	///    - rhs: value for plus
 	/// - Returns: `self` for chaining.
-	public func set<T: Encodable>(_ field: Column, plus rhs: T) -> Self {
-		let lhs = DBColumn(table: nil, field).serialize()
+	public func set<T: Encodable>(_ column: Column, plus rhs: T) -> Self {
+		let lhs = DBColumn(table: nil, column.key).serialize()
 		self.setsForUpdate.append(DBRaw(lhs + " = " + lhs + " + ", [rhs]))
 
 		return self
@@ -120,11 +119,11 @@ extension DBInsertBuilder {
 	/// Adds value to the `SET` operator for update.
 	///
 	/// - Parameters:
-	///    - field: column to set
-	///    - rhs: value for set
+	///    - column: column to set
+	///    - rhs: value for minus
 	/// - Returns: `self` for chaining.
-	public func set<T: Encodable>(_ field: Column, minus rhs: T) -> Self {
-		let lhs = DBColumn(table: nil, field).serialize()
+	public func set<T: Encodable>(_ column: Column, minus rhs: T) -> Self {
+		let lhs = DBColumn(table: nil, column.key).serialize()
 		self.setsForUpdate.append(DBRaw(lhs + " = " + lhs + " - ", [rhs]))
 
 		return self
@@ -136,7 +135,7 @@ extension DBInsertBuilder {
 	/// - Parameter data: The struct with source data for a binary expression.
 	/// - Returns: `self` for chaining.
 	public func doUpdateSet(_ data: ColumnBind) -> Self {
-		let lhs = DBColumn(table: nil, data.lhs).serialize()
+		let lhs = DBColumn(table: nil, data.lhs.key).serialize()
 		self.setsForUpdate.append(DBRaw(lhs + data.op, [data.rhs]))
 
 		return self

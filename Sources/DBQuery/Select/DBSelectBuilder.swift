@@ -13,7 +13,6 @@ public final class DBSelectBuilder<T: DBModel>: DBFilterSerialize {
 	/// See `DBQueryFetcher`.
 	public var database: SQLDatabase
 
-	public let space: String?
 	public let schema: String
 	public let section: String
 	public let alias: String
@@ -36,22 +35,21 @@ public final class DBSelectBuilder<T: DBModel>: DBFilterSerialize {
 	public var isWait: Bool = false
 
 	// MARK: - Init
-	public init(space: String? = nil, section: String, on database: SQLDatabase) {
+	public init(section: String, on database: SQLDatabase) {
 		self.database = database
-		self.space = space
 		self.schema = T.schema + section
 		self.section = section
 		self.alias = T.alias
 
 		self.from.append(
-			DBTable(space, table: T.schema + section, as: alias).serialize()
+			DBTable(table: T.schema + section, as: alias).serialize()
 		)
 	}
 
 	/// Makes copy of SelectBuilder.
 	/// - Returns: SelectBuilder.
 	public func copy() -> DBSelectBuilder {
-		let copy = DBSelectBuilder<T>(space: self.space, section: self.section, on: self.database)
+		let copy = DBSelectBuilder<T>(section: self.section, on: self.database)
 		copy.with = self.with
 		copy.columns = self.columns
 		copy.from = self.from

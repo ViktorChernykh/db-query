@@ -12,10 +12,9 @@ public final class DBDeleteBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
 	/// See `DBQueryFetcher`.
 	public var database: SQLDatabase
 
-	public let space: String?
 	public let schema: String
-	public let section: String
 	public let alias: String
+	public let section: String
 
 	public var with: [DBRaw] = []
 	public var from: String = ""
@@ -26,14 +25,13 @@ public final class DBDeleteBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
 	public var returning: [String] = []
 
 	// MARK: Init
-	public init(space: String? = nil, section: String, on database: SQLDatabase) {
+	public init(section: String, on database: SQLDatabase) {
 		self.database = database
-		self.space = space
 		self.schema = T.schema + section
-		self.section = section
 		self.alias = T.alias
+		self.section = section
 
-		self.from = DBTable(space, table: self.schema, as: self.alias)
+		self.from = DBTable(table: self.schema, as: self.alias)
 			.serialize()
 	}
 
