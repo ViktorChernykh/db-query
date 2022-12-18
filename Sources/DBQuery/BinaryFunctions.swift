@@ -2,6 +2,8 @@ infix operator ~~
 infix operator !~
 infix operator |=|
 infix operator !|=|
+infix operator ~=
+infix operator !~=
 
 import SQLKit
 
@@ -58,6 +60,13 @@ public func |=| (_ lhs: Column, _ rhs: [Encodable]) -> ColumnBinds {
 }
 public func !|=| (_ lhs: Column, _ rhs: [Encodable]) -> ColumnBinds {
 	.init(lhs: lhs, op: " NOT BETWEEN ", rhs: rhs)
+}
+
+public func ~= (_ lhs: Column, _ rhs: [Encodable]) -> ColumnBinds {
+	.init(lhs: lhs, op: " ILIKE ", rhs: rhs)
+}
+public func !~= (_ lhs: Column, _ rhs: [Encodable]) -> ColumnBinds {
+	.init(lhs: lhs, op: " NOT ILIKE ", rhs: rhs)
 }
 
 public struct ColumnColumn {
