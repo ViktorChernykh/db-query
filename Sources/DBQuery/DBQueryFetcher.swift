@@ -75,7 +75,11 @@ extension DBQueryFetcher {
 	///
 	/// The returned future will signal completion of the query.
 	public func run(_ handler: @escaping (SQLRow) -> ()) -> EventLoopFuture<Void> {
-		return self.database.execute(sql: self.serialize(end: ";")) { row in
+		let query = self.serialize(end: ";")
+#if DEBUG
+		print(query.sql)
+#endif
+		return self.database.execute(sql: query) { row in
 			handler(row)
 		}
 	}
@@ -86,6 +90,10 @@ extension DBQueryFetcher {
 	///
 	/// - returns: A future signaling completion.
 	public func run() -> EventLoopFuture<Void> {
-		return self.database.execute(sql: self.serialize(end: ";")) { _ in }
+		let query = self.serialize(end: ";")
+#if DEBUG
+		print(query.sql)
+#endif
+		return self.database.execute(sql: query) { _ in }
 	}
 }

@@ -120,9 +120,7 @@ public final class DBInsertBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
 			query.sql += " RETURNING " + self.returning.joined(separator: ", ")
 		}
 		query.sql += end
-#if DEBUG
-		print(query.sql)
-#endif
+
 		return SQLRaw(query.sql, query.binds)
 	}
 }

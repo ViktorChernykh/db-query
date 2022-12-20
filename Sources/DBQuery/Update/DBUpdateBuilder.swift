@@ -139,9 +139,7 @@ public final class DBUpdateBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
 		}
 
 		query.sql += end
-#if DEBUG
-		print(query.sql)
-#endif
+
 		return SQLRaw(query.sql, query.binds)
 	}
 }

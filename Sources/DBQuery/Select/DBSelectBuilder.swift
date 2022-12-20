@@ -143,9 +143,7 @@ public final class DBSelectBuilder<T: DBModel>: DBFilterSerialize {
 			}
 		}
 		query.sql += end
-#if DEBUG
-		print(query.sql)
-#endif
+
 		return SQLRaw(query.sql, query.binds)
 	}
 }
