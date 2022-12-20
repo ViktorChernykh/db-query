@@ -68,7 +68,7 @@ public final class DBSelectBuilder<T: DBModel>: DBFilterSerialize {
 		return copy
 	}
 
-	public func serialize(end: String = "") -> SQLRaw {
+	public func serialize() -> SQLRaw {
 		var query = DBRaw("")
 
 		if with.count > 0 {
@@ -142,8 +142,10 @@ public final class DBSelectBuilder<T: DBModel>: DBFilterSerialize {
 				query.sql += " NOWAIT"
 			}
 		}
-		query.sql += end
-
+		query.sql += ";"
+#if DEBUG
+		print(query.sql)
+#endif
 		return SQLRaw(query.sql, query.binds)
 	}
 }

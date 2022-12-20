@@ -37,7 +37,7 @@ public final class DBUpdateBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
 		)
 	}
 
-	public func serialize(end: String = "") -> SQLRaw {
+	public func serialize() -> SQLRaw {
 		var query = DBRaw("")
 
 		if with.count > 0 {
@@ -137,9 +137,10 @@ public final class DBUpdateBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
 		if self.returning.count > 0 {
 			query.sql += " RETURNING " + self.returning.joined(separator: ", ")
 		}
-
-		query.sql += end
-
+		query.sql += ";"
+#if DEBUG
+		print(query.sql)
+#endif
 		return SQLRaw(query.sql, query.binds)
 	}
 }

@@ -9,7 +9,7 @@ import SQLKit
 
 public protocol DBQueryFetcher: AnyObject {
 	var database: SQLDatabase { get }
-	func serialize(end: String) -> SQLRaw
+	func serialize() -> SQLRaw
 }
 
 extension DBQueryFetcher {
@@ -75,11 +75,7 @@ extension DBQueryFetcher {
 	///
 	/// The returned future will signal completion of the query.
 	public func run(_ handler: @escaping (SQLRow) -> ()) -> EventLoopFuture<Void> {
-		let query = self.serialize(end: ";")
-#if DEBUG
-		print(query.sql)
-#endif
-		return self.database.execute(sql: query) { row in
+		return self.database.execute(sql: self.serialize()) { row in
 			handler(row)
 		}
 	}
@@ -90,10 +86,6 @@ extension DBQueryFetcher {
 	///
 	/// - returns: A future signaling completion.
 	public func run() -> EventLoopFuture<Void> {
-		let query = self.serialize(end: ";")
-#if DEBUG
-		print(query.sql)
-#endif
-		return self.database.execute(sql: query) { _ in }
+		return self.database.execute(sql: self.serialize()) { _ in }
 	}
 }
