@@ -22,6 +22,7 @@ extension DBSelectBuilder {
 		)
 		let copy = self.copy()
 		copy.order = []
+		copy.joins = copy.joins.filter { $0.method == .inner }
 		self.offset = pageRequest.offset
 		self.limit = pageRequest.per
 
