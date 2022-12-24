@@ -6,12 +6,12 @@
 //
 
 extension String.StringInterpolation {
-	public mutating func appendInterpolation(c column: Column) {
+	public mutating func appendInterpolation(col column: Column) {
 		let string = "\"" + column.key + "\""
 		appendLiteral(string)
 	}
 
-	public mutating func appendInterpolation(s text: String) {
+	public mutating func appendInterpolation(str text: String) {
 		let string = "\"" + text + "\""
 		appendLiteral(string)
 	}
