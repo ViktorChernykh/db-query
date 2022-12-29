@@ -33,4 +33,20 @@ extension SQLDatabase {
 	public func raw(_ sql: SQLRaw) -> RawBuilder {
 		return .init(sql, on: self)
 	}
+
+	/// Creates a new `RawBuilder`.
+	/// - Parameter string: SQL string
+	/// - Returns: `RawBuilder`.
+	public func raw(_ string: String) -> RawBuilder {
+		let sql = SQLRaw(string)
+		return .init(sql, on: self)
+	}
+
+	/// Creates a new `RawBuilder`.
+	/// - Parameter dbItem: enum DBItem
+	/// - Returns: `RawBuilder`.
+	public func raw(_ dbItem: DBItem) -> RawBuilder {
+		let sql = SQLRaw(dbItem.rawValue)
+		return .init(sql, on: self)
+	}
 }
