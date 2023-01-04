@@ -26,6 +26,28 @@ extension DBSelectBuilder {
 		let join = DBJoin(alias: alias, from: joinTable, method: method)
 		self.joins.append(join)
 
+		if self.filters[0].sql == "\(str: self.alias).\(str: "companyId") = " {
+			let column = Column("companyId", alias)
+			let companyId = self.filters[0].binds[0]
+			on(column == companyId)
+		}
+
+		return self
+	}
+
+	@discardableResult
+	public func onOpenBrecket() -> Self {
+		let last = lastJoin()
+		self.joins[last].filters.append(DBRaw("("))
+		
+		return self
+	}
+
+	@discardableResult
+	public func onCloseBrecket() -> Self {
+		let last = lastJoin()
+		self.joins[last].filters.append(DBRaw(")"))
+
 		return self
 	}
 
@@ -84,9 +106,12 @@ extension DBSelectBuilder {
 	public func on(_ data: ColumnColumn) -> Self {
 		let lhs = DBColumn(data.lhs).serialize()
 		let rhs = DBColumn(data.rhs).serialize()
-
 		let last = lastJoin()
-		self.joins[last].filterAnd.append(DBRaw(lhs + data.op + rhs))
+		var conj = ""
+		if let lastFilter = self.joins[last].filters.last, lastFilter.sql != "(" {
+			conj = " AND "
+		}
+		self.joins[last].filters.append(DBRaw(conj + lhs + data.op + rhs))
 		return self
 	}
 
@@ -101,9 +126,12 @@ extension DBSelectBuilder {
 	/// - Returns: `self` for chaining.
 	public func on(_ data: ColumnBind) -> Self {
 		let lhs = DBColumn(data.lhs).serialize()
-
 		let last = lastJoin()
-		self.joins[last].filterAnd.append(DBRaw(lhs + data.op, [data.rhs]))
+		var conj = ""
+		if let lastFilter = self.joins[last].filters.last, lastFilter.sql != "(" {
+			conj = " AND "
+		}
+		self.joins[last].filters.append(DBRaw(conj + lhs + data.op, [data.rhs]))
 		return self
 	}
 
@@ -118,9 +146,12 @@ extension DBSelectBuilder {
 	/// - Returns: `self` for chaining.
 	public func on(_ data: ColumnBinds) -> Self {
 		let lhs = DBColumn(data.lhs).serialize()
-
 		let last = lastJoin()
-		self.joins[last].filterAnd.append(DBRaw(lhs + data.op, data.rhs))
+		var conj = ""
+		if let lastFilter = self.joins[last].filters.last, lastFilter.sql != "(" {
+			conj = " AND "
+		}
+		self.joins[last].filters.append(DBRaw(conj + lhs + data.op, data.rhs))
 		return self
 	}
 
@@ -138,9 +169,23 @@ extension DBSelectBuilder {
 	/// - Returns: `self` for chaining.
 	public func on(_ column: Column, _ custom: String, _ bind: Encodable) -> Self {
 		let lhs = DBColumn(column).serialize()
-
 		let last = lastJoin()
-		self.joins[last].filterAnd.append(DBRaw(lhs + " \(custom) ", [bind]))
+		var conj = ""
+		if let lastFilter = self.joins[last].filters.last, lastFilter.sql != "(" {
+			conj = " AND "
+		}
+		self.joins[last].filters.append(DBRaw(conj + lhs + " \(custom) ", [bind]))
+		return self
+	}
+
+	@discardableResult
+	/// Creates binary expression from struct with source data to `ON` condition.
+	///
+	/// - Parameter sql: DBRaw.
+	/// - Returns: `self` for chaining.
+	public func on(_ sql: DBRaw) -> Self {
+		let last = lastJoin()
+		self.joins[last].filters.append(sql)
 		return self
 	}
 
@@ -157,9 +202,12 @@ extension DBSelectBuilder {
 	public func orOn(_ data: ColumnColumn) -> Self {
 		let lhs = DBColumn(data.lhs).serialize()
 		let rhs = DBColumn(data.rhs).serialize()
-
 		let last = lastJoin()
-		self.joins[last].filterOr.append(DBRaw(lhs + data.op + rhs))
+		var conj = ""
+		if let lastFilter = self.joins[last].filters.last, lastFilter.sql != "(" {
+			conj = " OR "
+		}
+		self.joins[last].filters.append(DBRaw(conj + lhs + data.op + rhs))
 		return self
 	}
 
@@ -174,9 +222,12 @@ extension DBSelectBuilder {
 	/// - Returns: `self` for chaining.
 	public func orOn(_ data: ColumnBind) -> Self {
 		let lhs = DBColumn(data.lhs).serialize()
-
 		let last = lastJoin()
-		self.joins[last].filterOr.append(DBRaw(lhs + data.op, [data.rhs]))
+		var conj = ""
+		if let lastFilter = self.joins[last].filters.last, lastFilter.sql != "(" {
+			conj = " OR "
+		}
+		self.joins[last].filters.append(DBRaw(conj + lhs + data.op, [data.rhs]))
 		return self
 	}
 
@@ -191,9 +242,12 @@ extension DBSelectBuilder {
 	/// - Returns: `self` for chaining.
 	public func orOn(_ data: ColumnBinds) -> Self {
 		let lhs = DBColumn(data.lhs).serialize()
-
 		let last = lastJoin()
-		self.joins[last].filterOr.append(DBRaw(lhs + data.op, data.rhs))
+		var conj = ""
+		if let lastFilter = self.joins[last].filters.last, lastFilter.sql != "(" {
+			conj = " OR "
+		}
+		self.joins[last].filters.append(DBRaw(conj + lhs + data.op, data.rhs))
 		return self
 	}
 
@@ -211,9 +265,12 @@ extension DBSelectBuilder {
 	/// - Returns: `self` for chaining.
 	public func orOn(_ column: Column, _ custom: String, _ bind: Encodable) -> Self {
 		let lhs = DBColumn(column).serialize()
-
 		let last = lastJoin()
-		self.joins[last].filterOr.append(DBRaw(lhs + " \(custom) ", [bind]))
+		var conj = ""
+		if let lastFilter = self.joins[last].filters.last, lastFilter.sql != "(" {
+			conj = " OR "
+		}
+		self.joins[last].filters.append(DBRaw(conj + lhs + " \(custom) ", [bind]))
 		return self
 	}
 

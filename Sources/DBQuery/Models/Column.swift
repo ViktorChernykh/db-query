@@ -17,6 +17,10 @@ public struct Column {
 
 extension Column: CustomStringConvertible {
 	public var description: String {
-		"\"" + (table ?? "") + "\".\"" + key + "\""
+		if let table {
+			return "\(str: table).\(str: key)"
+		} else {
+			return "\(str: key)"
+		}
 	}
 }

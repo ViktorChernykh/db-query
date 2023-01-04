@@ -7,7 +7,7 @@
 
 import SQLKit
 
-public final class DBSelectBuilder<T: DBModel>: DBFilterSerialize {
+public final class DBSelectBuilder<T: DBModel>: DBFilterSerialize, DBPredicateForSelectDelete {
 
 	// MARK: Stored properties
 	/// See `DBQueryFetcher`.
@@ -20,8 +20,7 @@ public final class DBSelectBuilder<T: DBModel>: DBFilterSerialize {
 	public var with: [DBRaw] = []
 	public var columns: [DBRaw] = []
 	public var from: [String] = []
-	public var filterAnd: [DBRaw] = []
-	public var filterOr: [DBRaw] = []
+	public var filters: [DBRaw] = []
 	public var joins: [DBJoin] = []
 
 	public var group: [String] = []
@@ -53,8 +52,7 @@ public final class DBSelectBuilder<T: DBModel>: DBFilterSerialize {
 		copy.with = self.with
 		copy.columns = self.columns
 		copy.from = self.from
-		copy.filterAnd = self.filterAnd
-		copy.filterOr = self.filterOr
+		copy.filters = self.filters
 		copy.joins = self.joins
 
 		copy.group = self.group
@@ -86,13 +84,8 @@ public final class DBSelectBuilder<T: DBModel>: DBFilterSerialize {
 			}
 		}
 
-		var cols = ""
-		if self.columns.count == 0 {
-			cols = "\"\(self.alias)\".*"
-		} else {
-			cols = self.columns.map { $0.sql }.joined(separator: ", ")
-			query.binds += self.columns.flatMap { $0.binds }
-		}
+		let cols = self.columns.map { $0.sql }.joined(separator: ", ")
+		query.binds += self.columns.flatMap { $0.binds }
 
 		if let aggregate {
 			switch aggregate {
@@ -116,8 +109,8 @@ public final class DBSelectBuilder<T: DBModel>: DBFilterSerialize {
 		for join in joins {
 			query = join.serialize(source: query)
 		}
-		if (self.filterAnd.count + self.filterOr.count) > 0 {
-			query.sql += " WHERE"
+		if filters.count > 0 {
+			query.sql += " WHERE "
 			query = serializeFilter(source: query)
 		}
 

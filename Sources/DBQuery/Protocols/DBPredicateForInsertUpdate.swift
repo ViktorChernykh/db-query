@@ -1,12 +1,63 @@
 //
-//  DBInsertBuilder+Predicate.swift
+//  DBPredicateForInsertUpdate.swift
 //  DBQuery
 //
-//  Created by Victor Chernykh on 24.11.2022.
+//  Created by Victor Chernykh on 03.09.2022.
 //
 
-extension DBInsertBuilder {
+public protocol DBPredicateForInsertUpdate: AnyObject {
+	var filters: [DBRaw] { get set }
+}
+
+extension DBPredicateForInsertUpdate {
+	/// Common
+	///
+	///     final class Star: DBModel {
+	///         static let schema = v1.schema
+	///         id : UUID
+	///         name: String
+	///
+	///         struct v1 {
+	///             static let schema = "stars"
+	///             static let id = Column("id")
+	///             static let name = Column("name")
+	///         }
+	///     }
+	///
+	///     final class Planet: DBModel {
+	///         static let schema = v1.schema
+	///         id : UUID
+	///         name: String
+	///         starId: UUID
+	///
+	///         struct v1 {
+	///             static let schema = "planets"
+	///             static let id = Column("id")
+	///             static let name = Column("name")
+	///             static let starId = Column("star_id")
+	///         }
+	///     }
+	///
+	///     typealias p = Planet.v1
+	///     typealias s = Star.v1
+	///
+	///     let query = Star.select(section: "aa", on: db)
+	///         .filter(s.id == id)
+
+	@discardableResult
+	public func openBrecket() -> Self {
+		self.filters.append(DBRaw("("))
+		return self
+	}
+
+	@discardableResult
+	public func closeBrecket() -> Self {
+		self.filters.append(DBRaw(")"))
+		return self
+	}
+	
 	// MARK: --- AND ---
+
 	@discardableResult
 	/// Creates binary expression from struct with source data to `WHERE` condition.
 	///
@@ -17,7 +68,11 @@ extension DBInsertBuilder {
 	public func filter(_ data: ColumnColumn) -> Self {
 		let lhs = DBColumn(table: nil, data.lhs.key).serialize()
 		let rhs = DBColumn(table: nil, data.rhs.key).serialize()
-		self.filterAnd.append(DBRaw(lhs + data.op + rhs))
+		var conj = ""
+		if let last = filters.last, last.sql != "(" {
+			conj = " AND "
+		}
+		self.filters.append(DBRaw(conj + lhs + data.op + rhs))
 		return self
 	}
 
@@ -28,9 +83,13 @@ extension DBInsertBuilder {
 	///
 	/// - Parameter data: The struct with source data for a binary expression.
 	/// - Returns: `self` for chaining.
-	public func filter(_ data: ColumnBind) -> Self {
+	public func filter(_ data: ColumnBind, as type: String? = nil) -> Self {
 		let lhs = DBColumn(table: nil, data.lhs.key).serialize()
-		self.filterAnd.append(DBRaw(lhs + data.op, [data.rhs]))
+		var conj = ""
+		if let last = filters.last, last.sql != "(" {
+			conj = " AND "
+		}
+		self.filters.append(DBRaw(conj + lhs + data.op, [data.rhs], as: type))
 		return self
 	}
 
@@ -41,9 +100,13 @@ extension DBInsertBuilder {
 	///
 	/// - Parameter data: The struct with source data for a binary expression.
 	/// - Returns: `self` for chaining.
-	public func filter(_ data: ColumnBinds) -> Self {
+	public func filter(_ data: ColumnBinds, as type: String? = nil) -> Self {
 		let lhs = DBColumn(table: nil, data.lhs.key).serialize()
-		self.filterAnd.append(DBRaw(lhs + data.op, data.rhs))
+		var conj = ""
+		if let last = filters.last, last.sql != "(" {
+			conj = " AND "
+		}
+		self.filters.append(DBRaw(conj + lhs + data.op, data.rhs, as: type))
 		return self
 	}
 
@@ -59,7 +122,11 @@ extension DBInsertBuilder {
 	/// - Returns: `self` for chaining.
 	public func filter(_ column: Column, _ custom: String, _ bind: Encodable) -> Self {
 		let lhs = DBColumn(table: nil, column.key).serialize()
-		self.filterAnd.append(DBRaw(lhs + " \(custom) ", [bind]))
+		var conj = ""
+		if let last = filters.last, last.sql != "(" {
+			conj = " AND "
+		}
+		self.filters.append(DBRaw(conj + lhs + " \(custom) ", [bind]))
 		return self
 	}
 
@@ -75,7 +142,42 @@ extension DBInsertBuilder {
 	/// - Returns: `self` for chaining.
 	public func filter(_ column: Column, _ custom: String, _ binds: [Encodable]) -> Self {
 		let lhs = DBColumn(table: nil, column.key).serialize()
-		self.filterAnd.append(DBRaw(lhs + " \(custom) ", binds))
+		var conj = ""
+		if let last = filters.last, last.sql != "(" {
+			conj = " AND "
+		}
+		self.filters.append(DBRaw(conj + lhs + " \(custom) ", binds))
+		return self
+	}
+
+	@discardableResult
+	public func filter(_ query: String, _ custom: String, _ bind: Encodable) -> Self {
+		var conj = ""
+		if let last = filters.last, last.sql != "(" {
+			conj = " AND "
+		}
+		self.filters.append(DBRaw(conj + query + " \(custom) ", [bind]))
+		return self
+	}
+
+	@discardableResult
+	public func filter(_ query: String, _ custom: String, _ binds: [Encodable]) -> Self {
+		var conj = ""
+		if let last = filters.last, last.sql != "(" {
+			conj = " AND "
+		}
+		self.filters.append(DBRaw(conj + query + " \(custom) ", binds))
+		return self
+	}
+
+	@discardableResult
+	public func filter(_ query: String, _ custom: String, _ column: Column) -> Self {
+		let rhs = DBColumn(table: nil, column.key).serialize()
+		var conj = ""
+		if let last = filters.last, last.sql != "(" {
+			conj = " AND "
+		}
+		self.filters.append(DBRaw(conj + query + " \(custom) " + rhs))
 		return self
 	}
 
@@ -86,7 +188,7 @@ extension DBInsertBuilder {
 	///   - sql: DBRaw.
 	/// - Returns: `self` for chaining.
 	public func filter(_ sql: DBRaw) -> Self {
-		self.filterAnd.append(sql)
+		self.filters.append(sql)
 		return self
 	}
 
@@ -102,8 +204,11 @@ extension DBInsertBuilder {
 	public func orFilter(_ data: ColumnColumn) -> Self {
 		let lhs = DBColumn(table: nil, data.lhs.key).serialize()
 		let rhs = DBColumn(table: nil, data.rhs.key).serialize()
-
-		self.filterOr.append(DBRaw(lhs + data.op + rhs))
+		var conj = ""
+		if let last = filters.last, last.sql != "(" {
+			conj = " OR "
+		}
+		self.filters.append(DBRaw(conj + lhs + data.op + rhs))
 		return self
 	}
 
@@ -114,9 +219,13 @@ extension DBInsertBuilder {
 	///
 	/// - Parameter data: The struct with source data for a binary expression.
 	/// - Returns: `self` for chaining.
-	public func orFilter(_ data: ColumnBind) -> Self {
+	public func orFilter(_ data: ColumnBind, as type: String? = nil) -> Self {
 		let lhs = DBColumn(table: nil, data.lhs.key).serialize()
-		self.filterOr.append(DBRaw(lhs + data.op, [data.rhs]))
+		var conj = ""
+		if let last = filters.last, last.sql != "(" {
+			conj = " OR "
+		}
+		self.filters.append(DBRaw(conj + lhs + data.op, [data.rhs], as: type))
 		return self
 	}
 
@@ -127,9 +236,13 @@ extension DBInsertBuilder {
 	///
 	/// - Parameter data: The struct with source data for a binary expression.
 	/// - Returns: `self` for chaining.
-	public func orFilter(_ data: ColumnBinds) -> Self {
+	public func orFilter(_ data: ColumnBinds, as type: String? = nil) -> Self {
 		let lhs = DBColumn(table: nil, data.lhs.key).serialize()
-		self.filterOr.append(DBRaw(lhs + data.op, data.rhs))
+		var conj = ""
+		if let last = filters.last, last.sql != "(" {
+			conj = " OR "
+		}
+		self.filters.append(DBRaw(conj + lhs + data.op, data.rhs, as: type))
 		return self
 	}
 
@@ -145,7 +258,11 @@ extension DBInsertBuilder {
 	/// - Returns: `self` for chaining.
 	public func orFilter(_ column: Column, _ custom: String, _ bind: Encodable) -> Self {
 		let lhs = DBColumn(table: nil, column.key).serialize()
-		self.filterOr.append(DBRaw(lhs + " \(custom) ", [bind]))
+		var conj = ""
+		if let last = filters.last, last.sql != "(" {
+			conj = " OR "
+		}
+		self.filters.append(DBRaw(conj + lhs + " \(custom) ", [bind]))
 		return self
 	}
 
@@ -161,19 +278,11 @@ extension DBInsertBuilder {
 	/// - Returns: `self` for chaining.
 	public func orFilter(_ column: Column, _ custom: String, _ binds: [Encodable]) -> Self {
 		let lhs = DBColumn(table: nil, column.key).serialize()
-		self.filterOr.append(DBRaw(lhs + " \(custom) ", binds))
-		return self
-	}
-
-	@discardableResult
-	/// Creates binary expression from struct with source data to `WHERE` condition.
-	///
-	/// - Parameters:
-	///   - sql: DBRaw.
-	/// - Returns: `self` for chaining.
-	public func orFilter(_ sql: DBRaw) -> Self {
-		self.filterOr.append(sql)
+		var conj = ""
+		if let last = filters.last, last.sql != "(" {
+			conj = " OR "
+		}
+		self.filters.append(DBRaw(conj + lhs + " \(custom) ", binds))
 		return self
 	}
 }
-

@@ -7,7 +7,7 @@
 
 import SQLKit
 
-public final class DBDeleteBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerialize {
+public final class DBDeleteBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerialize, DBPredicateForSelectDelete {
 	// MARK: Stored properties
 	/// See `DBQueryFetcher`.
 	public var database: SQLDatabase
@@ -20,8 +20,7 @@ public final class DBDeleteBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
 	public var from: String = ""
 	public var using: [String] = []
 	public var cursor: String? = nil
-	public var filterAnd: [DBRaw] = []
-	public var filterOr: [DBRaw] = []
+	public var filters: [DBRaw] = []
 	public var returning: [String] = []
 
 	// MARK: Init
@@ -54,8 +53,8 @@ public final class DBDeleteBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
 		if let cursor = self.cursor {
 			query.sql += " WHERE CURRENT OF \(cursor)"
 		} else {
-			if (self.filterAnd.count + self.filterOr.count) > 0 {
-				query.sql += " WHERE"
+			if self.filters.count > 0 {
+				query.sql += " WHERE "
 				query = serializeFilter(source: query)
 			}
 		}

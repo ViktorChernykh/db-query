@@ -7,7 +7,7 @@
 
 import SQLKit
 
-public final class DBInsertBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerialize {
+public final class DBInsertBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerialize, DBPredicateForInsertUpdate {
 	// MARK: Stored properties
 	/// See `DBQueryFetcher`.
 	public var database: SQLDatabase
@@ -20,8 +20,7 @@ public final class DBInsertBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
 	public var inserts: [DBInsert] = []
 	public var columns: [String] = []
 
-	public var filterAnd: [DBRaw] = []
-	public var filterOr: [DBRaw] = []
+	public var filters: [DBRaw] = []
 	public var onConflict: [String]? = nil
 	public var setsForUpdate: [DBRaw] = []
 	public var isDoNothing = false
@@ -60,15 +59,13 @@ public final class DBInsertBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
 		for insert in inserts {
 			var items = [String]()
 			for value in insert.values {
-				if let val = value as? String,      // This for Database types
-				   String(val.prefix(1)) == "\'",
-				   String(val.suffix(1)) == "\'" {
-					items.append(val)
+				j += 1
+				if let type = value.type {
+					items.append("$\(j)::\(type)")
 				} else {
-					j += 1
 					items.append("$\(j)")
-					query.binds.append(value)
 				}
+				query.binds.append(value.value)
 			}
 			lines.append("(" + items.joined(separator: ", ") + ")")
 		}
@@ -82,36 +79,26 @@ public final class DBInsertBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
 			} else {
 				query.sql += " DO UPDATE SET "
 
-				for sets in setsForUpdate {
-					let binds = sets.binds
-					switch binds.count {
-					case 0:
-						query.sql += sets.sql + ", "
-					case 1:
-						if let val = binds[0] as? String,      // This for Database types
-						   String(val.prefix(1)) == "\'",
-						   String(val.suffix(1)) == "\'" {
-							query.sql += "\(sets.sql)\(val), "
-							continue
-						}
-						query.binds += binds
+				for set in setsForUpdate {
+					query.sql += set.sql
+					let count = set.binds.count
+					if count == 0 {
+						query.sql += ", "
+					} else {
+						query.binds += set.binds
 						j += 1
-						query.sql += sets.sql + "$\(j), "
-					default:
-						query.binds += binds
-						query.sql += sets.sql + "("
-						for _ in binds {
-							j += 1
+						if let type = set.type {
+							query.sql += "$\(j)::\(type), "
+						} else {
 							query.sql += "$\(j), "
 						}
-						query.sql = String(query.sql.dropLast(2)) + "), "
 					}
 				}
 				query.sql = String(query.sql.dropLast(2))
 			}
 
-			if (self.filterAnd.count + self.filterOr.count) > 0 {
-				query.sql += " WHERE"
+			if self.filters.count > 0 {
+				query.sql += " WHERE "
 				query = serializeFilter(source: query)
 			}
 		}

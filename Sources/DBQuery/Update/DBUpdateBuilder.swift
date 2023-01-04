@@ -7,7 +7,7 @@
 
 import SQLKit
 
-public final class DBUpdateBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerialize {
+public final class DBUpdateBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerialize, DBPredicateForInsertUpdate {
 	// MARK: Stored properties
 	/// See `DBQueryFetcher`.
 	public var database: SQLDatabase
@@ -17,12 +17,11 @@ public final class DBUpdateBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
 	public let alias: String
 
 	public var with: [DBRaw] = []
-	public var update: String = ""
+	public var update: String
 	public var sets: [DBRaw] = []
 	public var from: [String] = []
 	public var cursor: String? = nil
-	public var filterAnd: [DBRaw] = []
-	public var filterOr: [DBRaw] = []
+	public var filters: [DBRaw] = []
 	public var returning: [String] = []
 
 	// MARK: - Init
@@ -31,10 +30,7 @@ public final class DBUpdateBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
 		self.schema = T.schema + section
 		self.section = section
 		self.alias = T.alias
-
-		self.update.append(
-			DBTable(table: T.schema + section).serialize()
-		)
+		self.update = "UPDATE " + DBTable(table: T.schema + section).serialize()
 	}
 
 	public func serialize() -> SQLRaw {
@@ -47,78 +43,27 @@ public final class DBUpdateBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
 				query.binds += item.binds
 			}
 		}
-		query.sql += "UPDATE " + self.update
+		query.sql += self.update
 		var j = query.binds.count
 
 		if sets.count > 0 {
 			query.sql += " SET "
-			let last = sets.count - 1
-			if last > 0 {
-				for i in 0..<last {
-					let binds = sets[i].binds
-					switch binds.count {
-					case 0:
-						query.sql += sets[i].sql + ", "
-					case 1:
-						if let val = binds[0] as? String,      // This for Database types
-						   String(val.prefix(1)) == "\'",
-						   String(val.suffix(1)) == "\'" {
-							query.sql += "\(sets[i].sql)\(val), "
-							continue
-						}
-						query.binds += binds
-						j += 1
-						query.sql += sets[i].sql + "$\(j), "
-					default:
-						if let val = binds[0] as? String,      // This for Database types
-						   String(val.prefix(1)) == "\'",
-						   String(val.suffix(1)) == "\'" {
-							let vals = binds.compactMap { $0 as? String }.joined(separator: ", ")
-							query.sql += "\(sets[i].sql)(\(vals)), "
-							continue
-						}
-						query.binds += binds
-						query.sql += sets[i].sql + "("
-						for _ in 0..<binds.count - 1 {
-							j += 1
-							query.sql += "$\(j), "
-						}
-						j += 1
-						query.sql += "$\(j)), "
-					}
-				}
-			}
-			let binds = sets[last].binds
-			switch binds.count {
-			case 0:
-				query.sql += sets[last].sql
-			case 1:
-				if let val = binds[0] as? String,      // This for Database types
-				   String(val.prefix(1)) == "\'",
-				   String(val.suffix(1)) == "\'" {
-					query.sql += "\(sets[last].sql)\(val)"
+			for set in sets {
+				query.sql += set.sql
+				let count = set.binds.count
+				if count == 0 {
+					query.sql += ", "
 				} else {
-					query.binds += binds
+					query.binds += set.binds
 					j += 1
-					query.sql += sets[last].sql + "$\(j)"
-				}
-			default:
-				if let val = binds[0] as? String,      // This for Database types
-				   String(val.prefix(1)) == "\'",
-				   String(val.suffix(1)) == "\'" {
-					let vals = binds.compactMap { $0 as? String }.joined(separator: ", ")
-					query.sql += "\(sets[last].sql)(\(vals))"
-				} else {
-					query.binds += binds
-					query.sql += sets[last].sql + "("
-					for _ in 0..<binds.count - 1 {
-						j += 1
+					if let type = set.type {
+						query.sql += "$\(j)::\(type), "
+					} else {
 						query.sql += "$\(j), "
 					}
-					j += 1
-					query.sql += "$\(j))"
 				}
 			}
+			query.sql = String(query.sql.dropLast(2))
 		}
 
 		if self.from.count > 0 {
@@ -128,8 +73,8 @@ public final class DBUpdateBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
 		if let cursor = self.cursor {
 			query.sql += " WHERE CURRENT OF \(cursor)"
 		} else {
-			if (self.filterAnd.count + self.filterOr.count) > 0 {
-				query.sql += " WHERE"
+			if self.filters.count > 0 {
+				query.sql += " WHERE "
 				query = serializeFilter(source: query)
 			}
 		}

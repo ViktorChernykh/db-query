@@ -36,7 +36,31 @@ extension DBInsertBuilder {
 	/// - Parameter values: The list of values must be equal columns count.
 	/// - Returns: self` for chaining.
 	public func values(_ values: Encodable...) -> Self {
-		self.inserts.append(DBInsert(values: values))
+		self.inserts.append(DBInsert(values: values.map { DBValue(value: $0) }))
+
+		return self
+	}
+
+	@discardableResult
+	/// Add values for the `set()`.
+	///
+	/// - Parameters:
+	///   -  value: The list of values must be equal columns count.
+	///   - type: Database type.
+	/// - Returns: self` for chaining.
+	public func value(_ value: Encodable, as type: String? = nil) -> Self {
+		let last = self.inserts.count - 1
+		self.inserts[last].values.append(DBValue(value: value, type: type))
+
+		return self
+	}
+
+	@discardableResult
+	/// Append DBInsert for next element.
+	///
+	/// - Returns: self` for chaining.
+	public func new() -> Self {
+		self.inserts.append(DBInsert())
 
 		return self
 	}
@@ -59,6 +83,7 @@ extension DBInsertBuilder {
 	/// - Returns: `self` for chaining.
 	public func resetValues() -> Self {
 		self.inserts = []
+		self.columns = []
 
 		return self
 	}
@@ -78,11 +103,13 @@ extension DBInsertBuilder {
 	@discardableResult
 	/// Adds value to the `SET` operator.
 	///
-	/// - Parameter data: The struct with source data for a binary expression.
+	/// - Parameters:
+	///   - data: The struct with source data for a binary expression.
+	///   - type: Database type.
 	/// - Returns: `self` for chaining.
-	public func set(_ data: ColumnBind) -> Self {
+	public func set(_ data: ColumnBind, as type: String? = nil) -> Self {
 		let lhs = DBColumn(table: nil, data.lhs.key).serialize()
-		self.setsForUpdate.append(DBRaw(lhs + data.op, [data.rhs]))
+		self.setsForUpdate.append(DBRaw(lhs + data.op, [data.rhs], as: type))
 
 		return self
 	}
@@ -91,12 +118,13 @@ extension DBInsertBuilder {
 	/// Adds value to the `SET` operator.
 	///
 	/// - Parameters:
-	///    - column: column to set
-	///    - rhs: value for set
+	///   - column: column to set
+	///   - rhs: value for set
+	///   - type: Database type.
 	/// - Returns: `self` for chaining.
-	public func set<T: Encodable>(_ column: Column, to rhs: T) -> Self {
+	public func set(_ column: Column, to rhs: Encodable, as type: String? = nil) -> Self {
 		let lhs = DBColumn(table: nil, column.key).serialize()
-		self.setsForUpdate.append(DBRaw(lhs + " = ", [rhs]))
+		self.setsForUpdate.append(DBRaw(lhs + " = ", [rhs], as: type))
 
 		return self
 	}
@@ -105,10 +133,10 @@ extension DBInsertBuilder {
 	/// Adds value to the `SET` operator.
 	///
 	/// - Parameters:
-	///    - column: column to set
-	///    - rhs: value for plus
+	///   - column: column to set
+	///   - rhs: value for plus
 	/// - Returns: `self` for chaining.
-	public func set<T: Encodable>(_ column: Column, plus rhs: T) -> Self {
+	public func set(_ column: Column, plus rhs: Encodable) -> Self {
 		let lhs = DBColumn(table: nil, column.key).serialize()
 		self.setsForUpdate.append(DBRaw(lhs + " = " + lhs + " + ", [rhs]))
 
@@ -119,10 +147,10 @@ extension DBInsertBuilder {
 	/// Adds value to the `SET` operator for update.
 	///
 	/// - Parameters:
-	///    - column: column to set
-	///    - rhs: value for minus
+	///   - column: column to set
+	///   - rhs: value for minus
 	/// - Returns: `self` for chaining.
-	public func set<T: Encodable>(_ column: Column, minus rhs: T) -> Self {
+	public func set(_ column: Column, minus rhs: Encodable) -> Self {
 		let lhs = DBColumn(table: nil, column.key).serialize()
 		self.setsForUpdate.append(DBRaw(lhs + " = " + lhs + " - ", [rhs]))
 

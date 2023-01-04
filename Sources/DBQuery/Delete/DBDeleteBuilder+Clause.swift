@@ -55,7 +55,7 @@ extension DBDeleteBuilder {
 	/// - Returns: `self` for chaining.
 	public func returning(_ columns: Column..., as alias: String? = nil) -> Self {
 		self.returning = columns.map {
-			DBColumn($0, alias: alias).serialize()
+			DBColumn($0, as: alias).serialize()
 		}
 		return self
 	}

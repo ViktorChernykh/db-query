@@ -43,9 +43,9 @@ extension SQLDatabase {
 	}
 
 	/// Creates a new `RawBuilder`.
-	/// - Parameter dbItem: enum DBItem
+	/// - Parameter dbItem: enum DBTransaction
 	/// - Returns: `RawBuilder`.
-	public func raw(_ dbItem: DBItem) -> RawBuilder {
+	public func raw(_ dbItem: DBTransaction) -> RawBuilder {
 		let sql = SQLRaw(dbItem.rawValue)
 		return .init(sql, on: self)
 	}

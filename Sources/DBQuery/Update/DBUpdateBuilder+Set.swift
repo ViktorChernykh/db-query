@@ -9,11 +9,13 @@ extension DBUpdateBuilder {
 	@discardableResult
 	/// Adds value to the `SET` operator.
 	///
-	/// - Parameter data: The struct with source data for a binary expression.
-	/// - Returns: `self` for chaining.
-	public func set(_ data: ColumnBind) -> Self {
+	/// - Parameters:
+	///   - data: The struct with source data for a binary expression.
+	///   - type: Database type.
+	///   - Returns: `self` for chaining.
+	public func set(_ data: ColumnBind, as type: String? = nil) -> Self {
 		let lhs = DBColumn(table: nil, data.lhs.key).serialize()
-		self.sets.append(DBRaw(lhs + data.op, [data.rhs]))
+		self.sets.append(DBRaw(lhs + data.op, [data.rhs], as: type))
 
 		return self
 	}
@@ -22,12 +24,13 @@ extension DBUpdateBuilder {
 	/// Adds value to the `SET` operator.
 	///
 	/// - Parameters:
-	///    - field: column to set
-	///    - rhs: value for set
+	///   - field: column to set.
+	///   - rhs: value for set.
+	///   - type: Database type.
 	/// - Returns: `self` for chaining.
-	public func set<T: Encodable>(_ field: Column, to rhs: T) -> Self {
+	public func set(_ field: Column, to rhs: Encodable, as type: String? = nil) -> Self {
 		let lhs = DBColumn(table: nil, field.key).serialize()
-		self.sets.append(DBRaw(lhs + " = ", [rhs]))
+		self.sets.append(DBRaw(lhs + " = ", [rhs], as: type))
 
 		return self
 	}
@@ -36,10 +39,10 @@ extension DBUpdateBuilder {
 	/// Adds value to the `SET` operator.
 	///
 	/// - Parameters:
-	///    - field: column to set
-	///    - rhs: value for plus
+	///   - field: column to set.
+	///   - rhs: value for plus.
 	/// - Returns: `self` for chaining.
-	public func set<T: Encodable>(_ field: Column, plus rhs: T) -> Self {
+	public func set(_ field: Column, plus rhs: Encodable) -> Self {
 		let lhs = DBColumn(table: nil, field.key).serialize()
 		self.sets.append(DBRaw(lhs + " = " + lhs + " + ", [rhs]))
 
@@ -50,10 +53,10 @@ extension DBUpdateBuilder {
 	/// Adds value to the `SET` operator for update.
 	///
 	/// - Parameters:
-	///    - field: column to set
-	///    - rhs: value for minus
+	///   - field: column to set.
+	///   - rhs: value for minus.
 	/// - Returns: `self` for chaining.
-	public func set<T: Encodable>(_ field: Column, minus rhs: T) -> Self {
+	public func set(_ field: Column, minus rhs: Encodable) -> Self {
 		let lhs = DBColumn(table: nil, field.key).serialize()
 		self.sets.append(DBRaw(lhs + " = " + lhs + " - ", [rhs]))
 

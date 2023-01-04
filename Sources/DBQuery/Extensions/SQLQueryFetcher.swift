@@ -26,7 +26,7 @@ public extension SQLQueryFetcher {
 			guard let row = $0 else {
 				return nil
 			}
-			return try row.decode(model: D.self, keyDecodingStrategy: .convertFromSnakeCase)
+			return try row.decode(model: D.self)
 		}
 	}
 
@@ -34,7 +34,7 @@ public extension SQLQueryFetcher {
 	func all<D>(decode: D.Type) -> EventLoopFuture<[D]> where D: Decodable {
 		return self.all().flatMapThrowing {
 			try $0.map {
-				try $0.decode(model: D.self, keyDecodingStrategy: .convertFromSnakeCase)
+				try $0.decode(model: D.self)
 			}
 		}
 	}
@@ -46,7 +46,7 @@ public extension SQLQueryFetcher {
 	{
 		return self.run {
 			do {
-				try handler(.success($0.decode(model: D.self, keyDecodingStrategy: .convertFromSnakeCase)))
+				try handler(.success($0.decode(model: D.self)))
 			} catch {
 				handler(.failure(error))
 			}

@@ -7,5 +7,9 @@
 
 public struct DBInsert {
 	// MARK: Stored properties
-	public var values: [Encodable] = []
+	public var values: [DBValue]
+
+	public init(values: [DBValue] = []) {
+		self.values = values
+	}
 }

@@ -10,8 +10,7 @@ public struct DBJoin: DBFilterSerialize {
 	public var alias: String
 	public var from: String
 	public var method: DBJoinMethod
-	public var filterAnd: [DBRaw] = []
-	public var filterOr: [DBRaw] = []
+	public var filters: [DBRaw] = []
 
 	// MARK: - Init
 	public init(
@@ -29,8 +28,8 @@ public struct DBJoin: DBFilterSerialize {
 			raw.sql + self.method.serialize() + "JOIN " + self.from,
 			raw.binds
 		)
-		if (self.filterAnd.count + self.filterOr.count) > 0 {
-			joinRaw.sql += " ON"
+		if self.filters.count > 0 {
+			joinRaw.sql += " ON "
 			return serializeFilter(source: joinRaw)
 		}
 		return joinRaw
