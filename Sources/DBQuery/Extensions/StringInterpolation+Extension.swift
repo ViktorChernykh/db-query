@@ -11,7 +11,7 @@ extension String.StringInterpolation {
 		appendLiteral(string)
 	}
 
-	public mutating func appendInterpolation(str text: String) {
+	public mutating func appendInterpolation(col text: String) {
 		let string = "\"" + text + "\""
 		appendLiteral(string)
 	}

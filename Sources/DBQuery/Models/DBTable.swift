@@ -16,8 +16,8 @@ public struct DBTable {
 
 	public func serialize() -> String {
 		if let alias {
-			return "\(str: table)" + " AS \(str: alias)"
+			return "\(col: table)" + " AS \(col: alias)"
 		}
-		return "\(str: table)"
+		return "\(col: table)"
 	}
 }

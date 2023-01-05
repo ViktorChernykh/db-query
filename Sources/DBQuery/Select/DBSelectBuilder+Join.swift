@@ -26,7 +26,7 @@ extension DBSelectBuilder {
 		let join = DBJoin(alias: alias, from: joinTable, method: method)
 		self.joins.append(join)
 
-		if self.filters[0].sql == "\(str: self.alias).\(str: "companyId") = " {
+		if self.filters[0].sql == "\(col: self.alias).\(col: "companyId") = " {
 			let column = Column("companyId", alias)
 			let companyId = self.filters[0].binds[0]
 			on(column == companyId)

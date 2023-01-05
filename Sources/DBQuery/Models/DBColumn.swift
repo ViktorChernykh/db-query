@@ -25,11 +25,11 @@ public struct DBColumn {
 	public func serialize() -> String {
 		var result = ""
 		if let table {
-			result = "\(str: table)."
+			result = "\(col: table)."
 		}
-		result += "\(str: column)"
+		result += "\(col: column)"
 		if let columnAlias {
-			result += " AS \(str: columnAlias)"
+			result += " AS \(col: columnAlias)"
 		}
 
 		return result

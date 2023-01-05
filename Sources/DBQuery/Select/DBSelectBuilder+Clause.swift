@@ -65,7 +65,7 @@ extension DBSelectBuilder {
 	public func field(_ field: String, as columnAlias: String? = nil) -> Self {
 		var column = field
 		if let columnAlias {
-			column += " AS \(str: columnAlias)"
+			column += " AS \(col: columnAlias)"
 		}
 		self.columns += [DBRaw(column)]
 		return self
@@ -86,7 +86,7 @@ extension DBSelectBuilder {
 	///
 	/// - Returns: `self` for chaining.
 	public func fields() -> Self {
-		self.columns = [DBRaw("\(str: self.alias).*")]
+		self.columns = [DBRaw("\(col: self.alias).*")]
 
 		return self
 	}
@@ -201,7 +201,7 @@ extension DBSelectBuilder {
 			}
 		} else {
 			let table = tableAlias ?? self.alias
-			self.columns = [DBRaw("\(str: table).*")]
+			self.columns = [DBRaw("\(col: table).*")]
 		}
 
 		return try await self.first(limit: nil).get()
