@@ -31,6 +31,9 @@ extension SQLDatabase {
 	///    - sql: The SQLRaw - alternative SQLQueryString.
 	/// - returns: `RawBuilder`.
 	public func raw(_ sql: SQLRaw) -> RawBuilder {
+#if DEBUG
+		print(sql.sql)
+#endif
 		return .init(sql, on: self)
 	}
 
@@ -38,6 +41,9 @@ extension SQLDatabase {
 	/// - Parameter string: SQL string
 	/// - Returns: `RawBuilder`.
 	public func raw(_ string: String) -> RawBuilder {
+#if DEBUG
+		print(string)
+#endif
 		let sql = SQLRaw(string)
 		return .init(sql, on: self)
 	}
@@ -46,6 +52,9 @@ extension SQLDatabase {
 	/// - Parameter dbItem: enum DBTransaction
 	/// - Returns: `RawBuilder`.
 	public func raw(_ dbItem: DBTransaction) -> RawBuilder {
+#if DEBUG
+		print(dbItem.rawValue)
+#endif
 		let sql = SQLRaw(dbItem.rawValue)
 		return .init(sql, on: self)
 	}
