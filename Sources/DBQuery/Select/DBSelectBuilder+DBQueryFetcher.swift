@@ -5,12 +5,9 @@
 //  Created by Victor Chernykh on 10.09.2022.
 //
 
+import NIOCore
 import SQLKit
 
-#if compiler(>=5.5) && canImport(_Concurrency)
-import NIOCore
-
-@available(macOS 12, iOS 15, watchOS 8, tvOS 15, *)
 public extension DBSelectBuilder {
 	func first() async throws -> SQLRow? {
 		return try await self.first().get()
@@ -36,8 +33,6 @@ public extension DBSelectBuilder {
 		return try await self.run().get()
 	}
 }
-
-#endif
 
 extension DBSelectBuilder {
 	// MARK: - First
