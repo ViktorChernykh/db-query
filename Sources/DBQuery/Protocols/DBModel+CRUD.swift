@@ -1,6 +1,5 @@
 import Foundation
 import SQLKit
-import FluentKit
 
 public protocol DBModel: AnyObject, Codable, DBSchema {
 	var id: UUID { get set }

@@ -7,12 +7,12 @@
 
 extension String.StringInterpolation {
 	public mutating func appendInterpolation(col column: Column) {
-		let string = "\"" + column.key + "\""
+		let string = "\"\(column.key)\""
 		appendLiteral(string)
 	}
 
 	public mutating func appendInterpolation(col text: String) {
-		let string = "\"" + text + "\""
+		let string = "\"\(text)\""
 		appendLiteral(string)
 	}
 }
