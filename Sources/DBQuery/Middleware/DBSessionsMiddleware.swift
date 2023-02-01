@@ -47,7 +47,7 @@ public final class DBSessionsMiddleware<T: DBModel & Authenticatable>: AsyncMidd
 		isSecure: Bool = false,
 		maxAge: Int? = nil,
 		path: String = "/",
-		sameSite: HTTPCookies.SameSitePolicy,
+		sameSite: HTTPCookies.SameSitePolicy = .lax,
 		cookieName: String = "session",
 		session: DBSessionProtocol
 	) {
