@@ -9,6 +9,8 @@ import Vapor
 
 public struct DBSessionCycle: DBSessionProtocol {
 
+	public init() { }
+
 	public func create(
 		_ data: [String: Data]? = nil,
 		expires: Date,
