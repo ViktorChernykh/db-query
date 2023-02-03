@@ -9,7 +9,7 @@ import Fluent
 import SQLKit
 import Vapor
 
-typealias sess = DBSessionModel.v1
+public typealias sess = DBSessionModel.v1
 
 public final class DBSessionModel: DBModel {
 	public static let schema = v1.schema
@@ -93,7 +93,7 @@ extension DBSessionModel {
 extension DBSessionModel {
 	// MARK: - create
 	@discardableResult
-	func create(on db: SQLDatabase) async throws -> UUID {
+	public func create(on db: SQLDatabase) async throws -> UUID {
 		let sql = "INSERT INTO \(col: v1.schema) VALUES($1, $2, $3, $4, $5, $6);"
 		let binds: [Encodable] = [id, string, data, expires, isAuth, userId]
 		let query = SQLRaw(sql, binds)
