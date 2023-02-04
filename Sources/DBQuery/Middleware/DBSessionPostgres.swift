@@ -1,5 +1,5 @@
 //
-//  DBSessionCycle.swift
+//  DBSessionPostgres.swift
 //  DBQuery
 //
 //  Created by Victor Chernykh on 30.01.2023.
@@ -7,13 +7,13 @@
 
 import Vapor
 
-public struct DBSessionCycle: DBSessionProtocol {
+public struct DBSessionPostgres: DBSessionProtocol {
 
 	public init() { }
 
 	public func create(
-		_ data: [String: Data]? = nil,
-		expires: Date,
+		data: [String: Data]? = nil,
+		expires: Date = Date().addingTimeInterval(31_536_000), // 1 year
 		isAuth: Bool = false,
 		userId: UUID? = nil,
 		for req: Request
@@ -22,7 +22,12 @@ public struct DBSessionCycle: DBSessionProtocol {
 
 		try await DBSessionModel.create(on: req.sql)
 			.new()
-			.values(UUID(), sessionId, data, expires, isAuth, userId)
+			.value(UUID())
+			.value(sessionId)
+			.value(data)
+			.value(expires)
+			.value(isAuth)
+			.value(userId)
 			.run()
 
 		return sessionId
@@ -30,25 +35,32 @@ public struct DBSessionCycle: DBSessionProtocol {
 
 	public func read(_ sessionID: String, for req: Request) async throws -> DBSessionModel? {
 		try await DBSessionModel.select(on: req.sql)
-			.filter(sess.id == sessionID)
-			.first(decode: DBSessionModel.self)
+		.fields()
+		.filter(sess.string == sessionID)
+		.first(decode: DBSessionModel.self)
 	}
 
 	public func update(
 		_ sessionID: String,
 		data: [String: Data]? = nil,
 		expires: Date,
-		isAuth: Bool,
+		isAuth: Bool? = nil,
 		userId: UUID? = nil,
 		for req: Request
 	) async throws {
-		try await DBSessionModel.update(on: req.sql)
+		let query = DBSessionModel.update(on: req.sql)
 			.filter(sess.string == sessionID)
-			.set(sess.data, to: data)
 			.set(sess.expires, to: expires)
-			.set(sess.isAuth, to: isAuth)
-			.set(sess.userId, to: userId)
-			.run()
+		if let data {
+			query.set(sess.data, to: data)
+		}
+		if let isAuth {
+			query.set(sess.isAuth, to: isAuth)
+		}
+		if let userId {
+			query.set(sess.userId, to: userId)
+		}
+		try await query.run()
 	}
 
 	public func delete(_ sessionID: String, for req: Request) async throws {

@@ -29,7 +29,7 @@ public final class DBSessionModel: DBModel {
 		func prepare(on db: Database) async throws {
 			try await db.schema(v1.schema)
 				.id()
-				.field(v1.string, .custom("VARCHAR(32)"), .required)
+				.field(v1.string, .custom("VARCHAR(126)"), .required)
 				.field(v1.data, .string)
 				.field(v1.expires, .datetime, .required)
 				.field(v1.isAuth, .bool, .required)

@@ -33,7 +33,7 @@ public final class DBSessionsMiddleware<T: DBModel & Authenticatable>: AsyncMidd
 
 	public let cookieName: String
 	/// Session store.
-	public let session: DBSessionProtocol
+	public let delegate: DBSessionProtocol
 
 	/// Creates a new `SessionsMiddleware`.
 	///
@@ -42,14 +42,14 @@ public final class DBSessionsMiddleware<T: DBModel & Authenticatable>: AsyncMidd
 	///     - configuration: `SessionsConfiguration` to use for naming and creating cookie values.
 	public init(
 		domain: String? = nil,
-		timeInterval: Double = 60 * 60 * 24 * 7, // one week
+		timeInterval: Double = 31_536_000, // one year
 		isHTTPOnly: Bool = false,
 		isSecure: Bool = false,
 		maxAge: Int? = nil,
 		path: String = "/",
 		sameSite: HTTPCookies.SameSitePolicy = .lax,
 		cookieName: String = "session",
-		session: DBSessionProtocol
+		delegate: DBSessionProtocol
 	) {
 		self.domain = domain
 		self.timeInterval = timeInterval
@@ -59,46 +59,51 @@ public final class DBSessionsMiddleware<T: DBModel & Authenticatable>: AsyncMidd
 		self.path = path
 		self.sameSite = sameSite
 		self.cookieName = cookieName
-		self.session = session
+		self.delegate = delegate
 	}
 
 	public func respond(to request: Request, chainingTo next: AsyncResponder) async throws -> Response {
-		let newExpires = Date().addingTimeInterval(timeInterval)
+		var isAuth = false
 		let cookieValue: String
+		let newExpires = Date().addingTimeInterval(timeInterval)
 
-		if let value = request.cookies[cookieName],
-		   let session = try await DBSessionModel.select(on: request.sql)
-			.filter(sess.string == value.string)
-			.first(decode: DBSessionModel.self),
-		   let _ = try await DBSessionModel.update(on: request.sql)
-					.filter(sess.string == value.string)
-					.set(sess.expires == newExpires)
-					.returning(sess.string)
-					.first() {
-			   cookieValue = value.string
-
-			if session.isAuth,
-				let userId = session.userId,
-				let user = try await T.select(on: request.sql)
-					.filter(Column("id", "u") == userId)
-					.first(decode: T.self) {
+		// Refresh session only if it hasn't expired
+		if let cookie = request.cookies[cookieName],
+		   let session = try await delegate.read(cookie.string, for: request),
+		   session.expires > Date() {
+			cookieValue = cookie.string
+			isAuth = session.isAuth
+			// Update session
+			try await delegate.update(
+				cookieValue,
+				data: nil,
+				expires: newExpires,
+				isAuth: isAuth,
+				userId: nil,
+				for: request)
+			// Authenticate
+			if isAuth,
+			   let userId = session.userId,
+			   let user = try await T.select(on: request.sql)
+				.fields()
+				.filter(Column("id", "u") == userId)
+				.first(decode: T.self) {
 				request.auth.login(user)
 			}
 		} else {
 			// Session id not found, create new session.
-			let session = DBSessionModel(expires: newExpires)
-			try await session.create(on: request.sql)
-			cookieValue = session.string
+			cookieValue = try await delegate.create(data: nil, expires: newExpires, isAuth: false, userId: nil, for: request)
 		}
 		let response = try await next.respond(to: request)
-		response.cookies[cookieName] = cookieFactory(cookieValue)
+		// set new cookie
+		response.cookies[cookieName] = cookieFactory(cookieValue, expires: newExpires)
 		return response
 	}
 
-	private func cookieFactory(_ string: String) -> HTTPCookies.Value {
+	private func cookieFactory(_ string: String, expires: Date) -> HTTPCookies.Value {
 		HTTPCookies.Value(
 			string: string,
-			expires: Date(timeIntervalSinceNow: timeInterval),
+			expires: expires,
 			maxAge: maxAge,
 			domain: domain,
 			path: path,
@@ -106,13 +111,5 @@ public final class DBSessionsMiddleware<T: DBModel & Authenticatable>: AsyncMidd
 			isHTTPOnly: isHTTPOnly,
 			sameSite: .lax
 		)
-	}
-
-	struct DBSessionString: Codable {
-		let string: String
-
-		init(string: String) {
-			self.string = string
-		}
 	}
 }

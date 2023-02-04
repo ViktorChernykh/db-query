@@ -10,7 +10,7 @@ import Vapor
 /// Capable of managing CRUD operations for `Session`s.
 public protocol DBSessionProtocol {
 	func create(
-		_ data: [String: Data]?,
+		data: [String: Data]?,
 		expires: Date,
 		isAuth: Bool,
 		userId: UUID?,
@@ -22,7 +22,7 @@ public protocol DBSessionProtocol {
 		_ sessionId: String,
 		data: [String: Data]?,
 		expires: Date,
-		isAuth: Bool,
+		isAuth: Bool?,
 		userId: UUID?,
 		for req: Request
 	) async throws
