@@ -7,6 +7,11 @@
 
 import Vapor
 
+public enum SessionDelegate {
+	case memory
+	case postgres
+	case custom(DBSessionProtocol)
+}
 public final class DBSessionsMiddleware<T: DBModel & Authenticatable>: AsyncMiddleware {
 	// MARK: Properties
 	/// The affected domain at which the cookie is active.
@@ -49,7 +54,7 @@ public final class DBSessionsMiddleware<T: DBModel & Authenticatable>: AsyncMidd
 		path: String = "/",
 		sameSite: HTTPCookies.SameSitePolicy = .lax,
 		cookieName: String = "session",
-		delegate: DBSessionProtocol
+		storage: SessionDelegate
 	) {
 		self.domain = domain
 		self.timeInterval = timeInterval
@@ -59,7 +64,15 @@ public final class DBSessionsMiddleware<T: DBModel & Authenticatable>: AsyncMidd
 		self.path = path
 		self.sameSite = sameSite
 		self.cookieName = cookieName
-		self.delegate = delegate
+
+		switch storage {
+		case .memory:
+			self.delegate = DBSessionMemory()
+		case .postgres:
+			self.delegate = DBSessionPostgres()
+		case .custom(let driver):
+			self.delegate = driver
+		}
 	}
 
 	public func respond(to request: Request, chainingTo next: AsyncResponder) async throws -> Response {
