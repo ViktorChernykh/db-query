@@ -67,7 +67,7 @@ public final class DBSessionsMiddleware<T: DBModel & Authenticatable>: AsyncMidd
 
 		switch storage {
 		case .memory:
-			self.delegate = DBSessionMemory()
+			self.delegate = DBSessionMemory.shared
 		case .postgres:
 			self.delegate = DBSessionPostgres()
 		case .custom(let driver):

@@ -8,9 +8,10 @@
 import Vapor
 
 public actor DBSessionMemory: DBSessionProtocol {
+	public static let shared = DBSessionMemory()
 	private (set) var cache: [String: DBSessionModel] = [:]
 
-	public init() { }
+	private init() { }
 
 	public func create(
 		data: [String: Data]? = nil,
