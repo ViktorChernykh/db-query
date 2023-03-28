@@ -7,17 +7,20 @@
 
 import Vapor
 
+/// Delegate options for DBSessionsMiddleware.
 public enum SessionDelegate {
 	case memory
 	case postgres
 	case custom(DBSessionProtocol)
 }
+
+/// Middleware for processing sessions.
 public final class DBSessionsMiddleware<T: DBModel & Authenticatable>: AsyncMiddleware {
 	// MARK: Properties
 	/// The affected domain at which the cookie is active.
 	public let domain: String?
 
-	/// The cookie's expiration
+	/// The cookie's expiration.
 	public let timeInterval: Double
 
 	/// Does not expose the cookie over non-HTTP channels.
@@ -36,7 +39,7 @@ public final class DBSessionsMiddleware<T: DBModel & Authenticatable>: AsyncMidd
 	/// This restriction mitigates attacks such as cross-site request forgery (XSRF).
 	public let sameSite: HTTPCookies.SameSitePolicy	// "Strict", "Lax", "None"
 
-	public let cookieName: String
+	public let cookieName = "session"
 	/// Session store.
 	public let delegate: DBSessionProtocol
 
@@ -53,7 +56,6 @@ public final class DBSessionsMiddleware<T: DBModel & Authenticatable>: AsyncMidd
 		maxAge: Int? = nil,
 		path: String = "/",
 		sameSite: HTTPCookies.SameSitePolicy = .lax,
-		cookieName: String = "session",
 		storage: SessionDelegate
 	) {
 		self.domain = domain
@@ -63,7 +65,6 @@ public final class DBSessionsMiddleware<T: DBModel & Authenticatable>: AsyncMidd
 		self.maxAge = maxAge
 		self.path = path
 		self.sameSite = sameSite
-		self.cookieName = cookieName
 
 		switch storage {
 		case .memory:
@@ -115,6 +116,11 @@ public final class DBSessionsMiddleware<T: DBModel & Authenticatable>: AsyncMidd
 		return response
 	}
 
+	/// Creates cookie.
+	/// - Parameters:
+	///   - string: session id.
+	///   - expires: session expires.
+	/// - Returns: session cookie.
 	private func cookieFactory(_ string: String, expires: Date) -> HTTPCookies.Value {
 		HTTPCookies.Value(
 			string: string,

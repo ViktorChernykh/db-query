@@ -34,7 +34,6 @@ public final class DBSessionModel: DBModel {
 				.field(v1.expires, .datetime, .required)
 				.field(v1.userId, .uuid)
 				.unique(on: v1.string)
-				.unique(on: v1.userId)
 				.create()
 		}
 
