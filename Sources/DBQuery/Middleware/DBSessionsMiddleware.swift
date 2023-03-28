@@ -82,18 +82,20 @@ public final class DBSessionsMiddleware<T: DBModel & Authenticatable>: AsyncMidd
 
 		// Refresh session only if it hasn't expired
 		if let cookie = request.cookies[cookieName],
-		   let session = try await delegate.read(cookie.string, for: request),
+		   let session = try await delegate.read(cookie.string, for: request),	// read session
 		   session.expires > Date() {
 			cookieValue = cookie.string
 			isAuth = session.isAuth
+
 			// Update session
 			try await delegate.update(
 				cookieValue,
 				data: nil,
 				expires: newExpires,
 				isAuth: isAuth,
-				userId: nil,
+				userId: session.userId,
 				for: request)
+
 			// Authenticate
 			if isAuth,
 			   let userId = session.userId,
