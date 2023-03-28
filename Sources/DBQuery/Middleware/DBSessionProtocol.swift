@@ -12,7 +12,6 @@ public protocol DBSessionProtocol {
 	func create(
 		data: [String: Data]?,
 		expires: Date,
-		isAuth: Bool,
 		userId: UUID?,
 		for req: Request) async throws -> String
 
@@ -22,7 +21,6 @@ public protocol DBSessionProtocol {
 		_ sessionId: String,
 		data: [String: Data]?,
 		expires: Date,
-		isAuth: Bool?,
 		userId: UUID?,
 		for req: Request
 	) async throws

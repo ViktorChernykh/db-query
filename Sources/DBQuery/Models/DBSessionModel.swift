@@ -32,7 +32,6 @@ public final class DBSessionModel: DBModel {
 				.field(v1.string, .custom("VARCHAR(126)"), .required)
 				.field(v1.data, .string)
 				.field(v1.expires, .datetime, .required)
-				.field(v1.isAuth, .bool, .required)
 				.field(v1.userId, .uuid)
 				.unique(on: v1.string)
 				.unique(on: v1.userId)
@@ -52,7 +51,6 @@ public final class DBSessionModel: DBModel {
 	public var string: String
 	public var data: String?
 	public var expires: Date
-	public var isAuth: Bool
 	public var userId: UUID?
 
 	public init(
@@ -60,7 +58,6 @@ public final class DBSessionModel: DBModel {
 		string: String? = nil,
 		data: [String: Data] = [:],
 		expires: Date,
-		isAuth: Bool = false,
 		userId: UUID? = nil
 	) {
 		self.id = id
@@ -71,7 +68,6 @@ public final class DBSessionModel: DBModel {
 			self.data = nil
 		}
 		self.expires = expires
-		self.isAuth = isAuth
 		self.userId = userId
 	}
 }
@@ -85,7 +81,6 @@ extension DBSessionModel {
 		public static let string = Column("string", Self.alias)
 		public static let data = Column("data", Self.alias)
 		public static let expires = Column("expires", Self.alias)
-		public static let isAuth = Column("isAuth", Self.alias)
 		public static let userId = Column("userId", Self.alias)
 	}
 }
@@ -94,13 +89,11 @@ extension DBSessionModel {
 	// MARK: - create
 	@discardableResult
 	public func create(on db: SQLDatabase) async throws -> UUID {
-		let sql = "INSERT INTO \(col: v1.schema) VALUES($1, $2, $3, $4, $5, $6);"
-		let binds: [Encodable] = [id, string, data, expires, isAuth, userId]
+		let sql = "INSERT INTO \(col: v1.schema) VALUES($1, $2, $3, $4, $5);"
+		let binds: [Encodable] = [id, string, data, expires, userId]
 		let query = SQLRaw(sql, binds)
 		try await db.raw(query).run()
 
 		return id
 	}
 }
-
-extension DBSessionModel: Authenticatable { }

@@ -76,7 +76,6 @@ public final class DBSessionsMiddleware<T: DBModel & Authenticatable>: AsyncMidd
 	}
 
 	public func respond(to request: Request, chainingTo next: AsyncResponder) async throws -> Response {
-		var isAuth = false
 		let cookieValue: String
 		let newExpires = Date().addingTimeInterval(timeInterval)
 
@@ -85,20 +84,17 @@ public final class DBSessionsMiddleware<T: DBModel & Authenticatable>: AsyncMidd
 		   let session = try await delegate.read(cookie.string, for: request),	// read session
 		   session.expires > Date() {
 			cookieValue = cookie.string
-			isAuth = session.isAuth
 
 			// Update session
 			try await delegate.update(
 				cookieValue,
 				data: nil,
 				expires: newExpires,
-				isAuth: isAuth,
 				userId: session.userId,
 				for: request)
 
 			// Authenticate
-			if isAuth,
-			   let userId = session.userId,
+			if let userId = session.userId,
 			   let user = try await T.select(on: request.sql)
 				.fields()
 				.filter(Column("id", "u") == userId)
@@ -107,7 +103,11 @@ public final class DBSessionsMiddleware<T: DBModel & Authenticatable>: AsyncMidd
 			}
 		} else {
 			// Session id not found, create new session.
-			cookieValue = try await delegate.create(data: nil, expires: newExpires, isAuth: false, userId: nil, for: request)
+			cookieValue = try await delegate.create(
+				data: nil,
+				expires: newExpires,
+				userId: nil,
+				for: request)
 		}
 		let response = try await next.respond(to: request)
 		// set new cookie

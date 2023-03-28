@@ -24,13 +24,11 @@ public actor DBSessionMemory: DBSessionProtocol {
 	///   - data: dictionary with session data
 	///   - expires: sessions expires
 	///   - isAuth: is user authenticate
-	///   - userId: user id
 	///   - req: Vapor.request
 	/// - Returns: session id
 	public func create(
 		data: [String: Data]? = nil,
 		expires: Date = Date().addingTimeInterval(31_536_000), // 1 year
-		isAuth: Bool = false,
 		userId: UUID? = nil,
 		for req: Request
 	) async throws -> String {
@@ -39,7 +37,6 @@ public actor DBSessionMemory: DBSessionProtocol {
 			string: sessionId,
 			data: data ?? [:],
 			expires: expires,
-			isAuth: isAuth,
 			userId: userId)
 
 		cache[sessionId] = session
@@ -61,14 +58,12 @@ public actor DBSessionMemory: DBSessionProtocol {
 	///   - sessionId: session key
 	///   - data: dictionary with session data
 	///   - expires: sessions expires
-	///   - isAuth: is user authenticate
 	///   - userId: user id
 	///   - req: Vapor.request
 	public func update(
 		_ sessionId: String,
 		data: [String: Data]? = nil,
 		expires: Date,
-		isAuth: Bool? = nil,
 		userId: UUID? = nil,
 		for req: Request
 	) async throws {
@@ -79,12 +74,7 @@ public actor DBSessionMemory: DBSessionProtocol {
 				session?.data = String(decoding: data, as: UTF8.self)
 			}
 		}
-		if let isAuth {
-			session?.isAuth = isAuth
-		}
-		if let userId {
-			session?.userId = userId
-		}
+		session?.userId = userId
 	}
 
 	/// Delete session from cache.

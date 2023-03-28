@@ -14,7 +14,6 @@ public struct DBSessionPostgres: DBSessionProtocol {
 	public func create(
 		data: [String: Data]? = nil,
 		expires: Date = Date().addingTimeInterval(31_536_000), // 1 year
-		isAuth: Bool = false,
 		userId: UUID? = nil,
 		for req: Request
 	) async throws -> String {
@@ -26,7 +25,6 @@ public struct DBSessionPostgres: DBSessionProtocol {
 			.value(sessionId)
 			.value(data)
 			.value(expires)
-			.value(isAuth)
 			.value(userId)
 			.run()
 
@@ -44,22 +42,14 @@ public struct DBSessionPostgres: DBSessionProtocol {
 		_ sessionID: String,
 		data: [String: Data]? = nil,
 		expires: Date,
-		isAuth: Bool? = nil,
 		userId: UUID? = nil,
 		for req: Request
 	) async throws {
 		let query = DBSessionModel.update(on: req.sql)
 			.filter(sess.string == sessionID)
 			.set(sess.expires, to: expires)
-		if let data {
-			query.set(sess.data, to: data)
-		}
-		if let isAuth {
-			query.set(sess.isAuth, to: isAuth)
-		}
-		if let userId {
-			query.set(sess.userId, to: userId)
-		}
+			.set(sess.data, to: data)
+			.set(sess.userId, to: userId)
 		try await query.run()
 	}
 
