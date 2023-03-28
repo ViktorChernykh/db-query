@@ -1,14 +1,14 @@
 //
-//  DBSessionsMiddleware.swift
+//  DBAuthenticateMiddleware.swift
 //  DBQuery
 //
-//  Created by Victor Chernykh on 30.01.2023.
+//  Created by Victor Chernykh on 28.03.2023.
 //
 
 import Vapor
 
 /// Middleware for processing sessions.
-public final class DBSessionsMiddleware<T: DBModel & Authenticatable>: AsyncMiddleware {
+public final class DBAuthenticateMiddleware<T: DBModel & Authenticatable & DBModelCredentials>: AsyncMiddleware {
 	// MARK: Properties
 	/// The sessions configuration.
 	public let configuration: DBSessionsConfiguration
@@ -37,44 +37,42 @@ public final class DBSessionsMiddleware<T: DBModel & Authenticatable>: AsyncMidd
 	}
 
 	public func respond(to request: Request, chainingTo next: AsyncResponder) async throws -> Response {
-		let cookieValue: String
+		let dto = try request.content.decode(DBLoginDto.self)
+		try await authenticate(credentials: dto, for: request)
+		return try await next.respond(to: request)
+	}
+
+	private func authenticate(credentials: DBLoginDto, for request: Request) async throws {
+		guard let user = try await T.select(on: request.sql)
+			.fields()
+			.filter(Column("email", "u") == credentials.email)
+			.first(decode: T.self),
+			  try Bcrypt.verify(credentials.password, created: user.passwordHash) else {
+			return
+		}
+
 		let expires = Date().addingTimeInterval(configuration.timeInterval)
 
-		// Refresh session only if it hasn't expired
 		if let cookie = request.cookies[configuration.cookieName],
-		   let session = try await delegate.read(cookie.string, for: request),	// read session
-		   session.expires > Date() {
-			cookieValue = cookie.string
-
-			// Update session
+			let session = try await delegate.read(cookie.string, for: request) {
 			try await delegate.update(
-				cookieValue,
+				cookie.string,
 				data: session.data,
 				expires: expires,
-				userId: session.userId,
+				userId: user.id,
 				for: request)
-
-			// Authenticate
-			if let userId = session.userId,
-			   let user = try await T.select(on: request.sql)
-				.fields()
-				.filter(Column("id", "u") == userId)
-				.first(decode: T.self) {
-				request.auth.login(user)
-			}
 		} else {
-			// Session id not found, create new session.
-			cookieValue = try await delegate.create(
-				data: nil,
+			let data: [String: Data]? = nil
+			let cookieValue = try await delegate.create(
+				data: data,
 				expires: expires,
-				userId: nil,
+				userId: user.id,
 				for: request)
+			// set new cookie
+			request.cookies[configuration.cookieName] = configuration.cookieFactory(
+				cookieValue,
+				expires: expires)
 		}
-		let response = try await next.respond(to: request)
-		// set new cookie
-		response.cookies[configuration.cookieName] = configuration.cookieFactory(
-			cookieValue,
-			expires: expires)
-		return response
+		request.auth.login(user)
 	}
 }

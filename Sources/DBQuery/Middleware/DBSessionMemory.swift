@@ -13,7 +13,7 @@ public actor DBSessionMemory: DBSessionProtocol {
 	public static let shared = DBSessionMemory()
 
 	/// Storage for sessions
-	private (set) var cache: [String: DBSessionModel] = [:]
+	private var cache: [String: DBSessionModel] = [:]
 
 	// MARK: - Init
 	private init() { }
@@ -23,7 +23,7 @@ public actor DBSessionMemory: DBSessionProtocol {
 	/// - Parameters:
 	///   - data: dictionary with session data
 	///   - expires: sessions expires
-	///   - isAuth: is user authenticate
+	///   - userId: user id
 	///   - req: Vapor.request
 	/// - Returns: session id
 	public func create(
@@ -35,7 +35,7 @@ public actor DBSessionMemory: DBSessionProtocol {
 		let sessionId = DBSessionModel.generateID()
 		let session = DBSessionModel(
 			string: sessionId,
-			data: data ?? [:],
+			data: data,
 			expires: expires,
 			userId: userId)
 
@@ -62,19 +62,47 @@ public actor DBSessionMemory: DBSessionProtocol {
 	///   - req: Vapor.request
 	public func update(
 		_ sessionId: String,
-		data: [String: Data]? = nil,
+		data: [String: Data]?,
 		expires: Date,
 		userId: UUID? = nil,
 		for req: Request
 	) async throws {
-		let session = cache[sessionId]
-
-		if let dictionary = data {
-			if let data = try? JSONEncoder().encode(dictionary) {
-				session?.data = String(decoding: data, as: UTF8.self)
+		if let session = cache[sessionId] {
+			if let dictionary = data {
+				if let data = try? JSONEncoder().encode(dictionary) {
+					session.data = String(decoding: data, as: UTF8.self)
+				}
 			}
+			session.expires = expires
+			session.userId = userId
+			cache[sessionId] = session
 		}
-		session?.userId = userId
+	}
+
+	/// Updates the session data in the cache.
+	/// - Parameters:
+	///   - sessionId: session key
+	///   - data: session data encoded to string
+	///   - expires: sessions expires
+	///   - userId: user id
+	///   - req: Vapor.request
+	public func update(
+		_ sessionId: String,
+		data: String?,
+		expires: Date,
+		userId: UUID? = nil,
+		for req: Request
+	) async throws {
+		if let session = cache[sessionId] {
+			if let data {
+				session.data = data
+			}
+			session.expires = expires
+			if let userId {
+				session.userId = userId
+			}
+			cache[sessionId] = session
+		}
 	}
 
 	/// Delete session from cache.

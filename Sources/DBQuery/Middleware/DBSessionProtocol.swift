@@ -25,5 +25,13 @@ public protocol DBSessionProtocol {
 		for req: Request
 	) async throws
 
+	func update(
+		_ sessionId: String,
+		data: String?,
+		expires: Date,
+		userId: UUID?,
+		for req: Request
+	) async throws
+
 	func delete(_ sessionId: String, for req: Request) async throws
 }

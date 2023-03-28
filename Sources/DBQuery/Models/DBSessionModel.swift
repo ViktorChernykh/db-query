@@ -55,14 +55,14 @@ public final class DBSessionModel: DBModel {
 	public init(
 		id: UUID = UUID(),
 		string: String? = nil,
-		data: [String: Data] = [:],
+		data: [String: Data]? = nil,
 		expires: Date,
 		userId: UUID? = nil
 	) {
 		self.id = id
 		self.string = string ?? Self.generateID()
-		if !data.isEmpty, let data = try? JSONEncoder().encode(data) {
-			self.data = String(decoding: data, as: UTF8.self)
+		if let dictionary = data, let encoded = try? JSONEncoder().encode(dictionary) {
+			self.data = String(decoding: encoded, as: UTF8.self)
 		} else {
 			self.data = nil
 		}
