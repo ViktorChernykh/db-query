@@ -37,33 +37,35 @@ public final class DBSessionsMiddleware<T: DBModel & Authenticatable>: AsyncMidd
 	}
 
 	public func respond(to request: Request, chainingTo next: AsyncResponder) async throws -> Response {
-		let cookieValue: String
+		var cookieValue: String
 		let expires = Date().addingTimeInterval(configuration.timeInterval)
+		var userId: UUID? = nil
 
-		// Refresh session only if it hasn't expired
+		// Check for an existing session
 		if let cookie = request.cookies[configuration.cookieName],
 		   let session = try await delegate.read(cookie.string, for: request),	// read session
 		   session.expires > Date() {
 			cookieValue = cookie.string
 
-			// Update session
-			try await delegate.update(
-				cookieValue,
-				data: session.data,
-				expires: expires,
-				userId: session.userId,
-				for: request)
-
 			// Authenticate
-			if let userId = session.userId,
+			if let id = session.userId,
 			   let user = try await T.select(on: request.sql)
 				.fields()
-				.filter(Column("id", "u") == userId)
+				.filter(Column("id", "u") == id)
 				.first(decode: T.self) {
+				userId = id
 				request.auth.login(user)
 			}
+			// Update session
+			let data: String? = nil
+			try await delegate.update(
+				cookieValue,
+				data: data,	// nil is not change existing data
+				expires: expires,
+				userId: userId,
+				for: request)
 		} else {
-			// Session id not found, create new session.
+			// cookie id not found, create new session.
 			cookieValue = try await delegate.create(
 				data: nil,
 				expires: expires,
@@ -71,10 +73,11 @@ public final class DBSessionsMiddleware<T: DBModel & Authenticatable>: AsyncMidd
 				for: request)
 		}
 		let response = try await next.respond(to: request)
-		// set new cookie
+		// set new/update cookie
 		response.cookies[configuration.cookieName] = configuration.cookieFactory(
 			cookieValue,
 			expires: expires)
+		
 		return response
 	}
 }

@@ -54,10 +54,11 @@ public final class DBAuthenticateMiddleware<T: DBModel & Authenticatable & DBMod
 		let expires = Date().addingTimeInterval(configuration.timeInterval)
 
 		if let cookie = request.cookies[configuration.cookieName],
-			let session = try await delegate.read(cookie.string, for: request) {
+			try await delegate.read(cookie.string, for: request) != nil {
+			let data: String? = nil
 			try await delegate.update(
 				cookie.string,
-				data: session.data,
+				data: data,
 				expires: expires,
 				userId: user.id,
 				for: request)

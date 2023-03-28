@@ -64,7 +64,7 @@ public actor DBSessionMemory: DBSessionProtocol {
 		_ sessionId: String,
 		data: [String: Data]?,
 		expires: Date,
-		userId: UUID? = nil,
+		userId: UUID?,
 		for req: Request
 	) async throws {
 		if let session = cache[sessionId] {
@@ -90,7 +90,7 @@ public actor DBSessionMemory: DBSessionProtocol {
 		_ sessionId: String,
 		data: String?,
 		expires: Date,
-		userId: UUID? = nil,
+		userId: UUID?,
 		for req: Request
 	) async throws {
 		if let session = cache[sessionId] {
@@ -98,9 +98,7 @@ public actor DBSessionMemory: DBSessionProtocol {
 				session.data = data
 			}
 			session.expires = expires
-			if let userId {
-				session.userId = userId
-			}
+			session.userId = userId
 			cache[sessionId] = session
 		}
 	}

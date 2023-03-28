@@ -57,22 +57,22 @@ public struct DBSessionPostgres: DBSessionProtocol {
 	///   - req: Vapor.request
 	public func update(
 		_ sessionId: String,
-		data: [String: Data]? = nil,
+		data: [String: Data]?,
 		expires: Date,
-		userId: UUID? = nil,
+		userId: UUID?,
 		for req: Request
 	) async throws {
 		let query = DBSessionModel.update(on: req.sql)
 			.filter(sess.string == sessionId)
 			.set(sess.expires, to: expires)
-			.set(sess.data, to: data)
+			.set(sess.userId, to: userId)
+
 		if let data {
 			if let encoded = try? JSONEncoder().encode(data) {
 				let string = String(decoding: encoded, as: UTF8.self)
 				query.set(sess.data, to: string)
 			}
 		}
-		query.set(sess.userId, to: userId)
 		try await query.run()
 	}
 
@@ -85,16 +85,19 @@ public struct DBSessionPostgres: DBSessionProtocol {
 	///   - req: Vapor.request
 	public func update(
 		_ sessionId: String,
-		data: String? = nil,
+		data: String?,
 		expires: Date,
-		userId: UUID? = nil,
+		userId: UUID?,
 		for req: Request
 	) async throws {
 		let query = DBSessionModel.update(on: req.sql)
 			.filter(sess.string == sessionId)
 			.set(sess.expires, to: expires)
-			.set(sess.data, to: data)
 			.set(sess.userId, to: userId)
+
+		if let data {
+			query.set(sess.data, to: data)
+		}
 		try await query.run()
 	}
 
