@@ -5,8 +5,10 @@
 //  Created by Victor Chernykh on 28.03.2023.
 //
 
+import Vapor
+
 /// Data transfer object for a login request
-public struct DBLoginDto: Codable {
+public struct DBLoginDto: Content {
 	// MARK: - Stored properties
 	public let email: String
 	public let password: String
