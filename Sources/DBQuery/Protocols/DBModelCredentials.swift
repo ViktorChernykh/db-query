@@ -7,5 +7,6 @@
 
 public protocol DBModelCredentials {
 	var email: String { get set }
+	var isEmailConfirmed: Bool { get set }
 	var passwordHash: String { get set }
 }

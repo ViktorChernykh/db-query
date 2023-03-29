@@ -50,29 +50,30 @@ public final class DBAuthenticateMiddleware<T: DBModel & Authenticatable & DBMod
 			  try Bcrypt.verify(credentials.password, created: user.passwordHash) else {
 			return
 		}
+		if user.isEmailConfirmed {
+			let expires = Date().addingTimeInterval(configuration.timeInterval)
 
-		let expires = Date().addingTimeInterval(configuration.timeInterval)
-
-		if let cookie = request.cookies[configuration.cookieName],
-			try await delegate.read(cookie.string, for: request) != nil {
-			let data: String? = nil
-			try await delegate.update(
-				cookie.string,
-				data: data,
-				expires: expires,
-				userId: user.id,
-				for: request)
-		} else {
-			let data: [String: Data]? = nil
-			let cookieValue = try await delegate.create(
-				data: data,
-				expires: expires,
-				userId: user.id,
-				for: request)
-			// set new cookie
-			request.cookies[configuration.cookieName] = configuration.cookieFactory(
-				cookieValue,
-				expires: expires)
+			if let cookie = request.cookies[configuration.cookieName],
+			   try await delegate.read(cookie.string, for: request) != nil {
+				let data: String? = nil
+				try await delegate.update(
+					cookie.string,
+					data: data,
+					expires: expires,
+					userId: user.id,
+					for: request)
+			} else {
+				let data: [String: Data]? = nil
+				let cookieValue = try await delegate.create(
+					data: data,
+					expires: expires,
+					userId: user.id,
+					for: request)
+				// set new cookie
+				request.cookies[configuration.cookieName] = configuration.cookieFactory(
+					cookieValue,
+					expires: expires)
+			}
 		}
 		request.auth.login(user)
 	}
