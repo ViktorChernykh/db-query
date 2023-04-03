@@ -30,22 +30,27 @@ public final class DBSessionsMiddleware<T: DBModel & Authenticatable>: AsyncMidd
 		case .memory:
 			self.delegate = DBSessionMemory.shared
 		case .postgres:
-			self.delegate = DBSessionPostgres()
+			self.delegate = DBSessionPostgres.shared
 		case .custom(let driver):
 			self.delegate = driver
 		}
 	}
 
 	public func respond(to request: Request, chainingTo next: AsyncResponder) async throws -> Response {
-		var cookieValue: String
+		let cookieValue: String
 		let expires = Date().addingTimeInterval(configuration.timeInterval)
-		var userId: UUID? = nil
 
 		// Check for an existing session
 		if let cookie = request.cookies[configuration.cookieName],
-		   let session = try await delegate.read(cookie.string, for: request),	// read session
+		   let session = try await delegate.read(cookie.string, for: request), // read session
 		   session.expires > Date() {
 			cookieValue = cookie.string
+
+			// Update session.expires
+			try await delegate.update(
+				cookieValue,
+				expires: expires,
+				for: request)
 
 			// Authenticate
 			if let id = session.userId,
@@ -53,31 +58,28 @@ public final class DBSessionsMiddleware<T: DBModel & Authenticatable>: AsyncMidd
 				.fields()
 				.filter(Column("id", "u") == id)
 				.first(decode: T.self) {
-				userId = id
 				request.auth.login(user)
 			}
-			// Update session
-			let data: String? = nil
-			try await delegate.update(
-				cookieValue,
-				data: data,	// nil is not change existing data
-				expires: expires,
-				userId: userId,
-				for: request)
 		} else {
-			// cookie id not found, create new session.
+			// create new session
 			cookieValue = try await delegate.create(
-				data: nil,
+				csrf: nil,
+				data: [:],
 				expires: expires,
 				userId: nil,
 				for: request)
+
+			request.cookies[configuration.cookieName] = configuration.cookieFactory(
+				cookieValue,
+				expires: expires)
 		}
+
 		let response = try await next.respond(to: request)
-		// set new/update cookie
+
 		response.cookies[configuration.cookieName] = configuration.cookieFactory(
 			cookieValue,
 			expires: expires)
-		
+
 		return response
 	}
 }

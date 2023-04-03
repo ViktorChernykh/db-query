@@ -29,12 +29,19 @@ public final class DBSessionModel: DBModel {
 		func prepare(on db: Database) async throws {
 			try await db.schema(v1.schema)
 				.id()
-				.field(v1.string, .custom("VARCHAR(126)"), .required)
+				.field(v1.string, .custom("VARCHAR(64)"), .required)
+				.field(v1.csrf, .custom("VARCHAR(64)"))
 				.field(v1.data, .string)
 				.field(v1.expires, .datetime, .required)
 				.field(v1.userId, .uuid)
 				.unique(on: v1.string)
 				.create()
+
+			let sql = """
+			CREATE INDEX \(v1.alias)_string_idx ON \(col: v1.schema) (
+			\(col: v1.string));
+			"""
+			try await db.sql.raw(SQLRaw(sql)).run()
 		}
 
 		func revert(on db: Database) async throws {
@@ -48,6 +55,7 @@ public final class DBSessionModel: DBModel {
 
 	public var id: UUID
 	public var string: String
+	public var csrf: String?
 	public var data: String?
 	public var expires: Date
 	public var userId: UUID?
@@ -55,7 +63,8 @@ public final class DBSessionModel: DBModel {
 	public init(
 		id: UUID = UUID(),
 		string: String? = nil,
-		data: [String: Data]? = nil,
+		csrf: String? = nil,
+		data: [String: String]? = nil,
 		expires: Date,
 		userId: UUID? = nil
 	) {
@@ -74,10 +83,11 @@ public final class DBSessionModel: DBModel {
 extension DBSessionModel {
 	public enum v1 {
 		public static let schema = "_db_sessions"
-		public static let alias = "session"
+		public static let alias = "sess"
 
 		public static let id = Column("id", Self.alias)
 		public static let string = Column("string", Self.alias)
+		public static let csrf = Column("csrf", Self.alias)
 		public static let data = Column("data", Self.alias)
 		public static let expires = Column("expires", Self.alias)
 		public static let userId = Column("userId", Self.alias)
@@ -88,8 +98,8 @@ extension DBSessionModel {
 	// MARK: - create
 	@discardableResult
 	public func create(on db: SQLDatabase) async throws -> UUID {
-		let sql = "INSERT INTO \(col: v1.schema) VALUES($1, $2, $3, $4, $5);"
-		let binds: [Encodable] = [id, string, data, expires, userId]
+		let sql = "INSERT INTO \(col: v1.schema) VALUES($1, $2, $3, $4, $5, $6);"
+		let binds: [Encodable] = [id, string, csrf, data, expires, userId]
 		let query = SQLRaw(sql, binds)
 		try await db.raw(query).run()
 
