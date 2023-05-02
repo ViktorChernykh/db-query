@@ -155,4 +155,12 @@ public actor DBSessionMemory: DBSessionProtocol {
 			cache[sessionId] = nil
 		}
 	}
+
+	/// Delete session from cache.
+	/// - Parameters:
+	///   - sessionId: session key
+	///   - req: Vapor.request
+	public func delete(_ sessionId: String, on req: Request) async throws {
+		cache[sessionId] = nil
+	}
 }

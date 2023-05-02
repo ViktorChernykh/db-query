@@ -172,4 +172,14 @@ public struct DBSessionPostgres: DBSessionProtocol {
 			.filter(sess.string == sessionId)
 			.run()
 	}
+
+	/// Delete session from database.
+	/// - Parameters:
+	///   - sessionId: session key
+	///   - req: Vapor.request
+	public func delete(_ sessionId: String, on req: Request) async throws {
+		try await DBSessionModel.delete(on: req.sql)
+			.filter(sess.string == sessionId)
+			.run()
+	}
 }
