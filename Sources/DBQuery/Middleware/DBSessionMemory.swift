@@ -32,66 +32,66 @@ public actor DBSessionMemory: DBSessionProtocol {
 		data: [String: String]? = nil,
 		expires: Date = Date().addingTimeInterval(604_800), // 7 days
 		userId: UUID? = nil,
-		for req: Request
+		on req: Request
 	) async throws -> String {
-		let sessionId = DBSessionModel.generateID()
 		let session = DBSessionModel(
-			string: sessionId,
+			string: DBSessionModel.generateID(),
 			csrf: csrf,
 			data: data,
 			expires: expires,
 			userId: userId)
 
-		cache[sessionId] = session
+		cache[session.string] = session
 
-		return sessionId
+		return session.string
 	}
 
 
 	/// Reads session data from cache by session id.
-	/// - Parameters:
-	///   - sessionId: session key
-	///   - req: Vapor.request
+	/// - Parameter req: Vapor.request
 	/// - Returns: model  by session key saved in cache
-	public func read(_ sessionId: String, for req: Request) async throws -> DBSessionModel? {
-		cache[sessionId]
+	public func read(on req: Request) async throws -> DBSessionModel? {
+		if let sessionId = req.cookies["session"]?.string {
+			return cache[sessionId]
+		}
+		return nil
 	}
 
 	/// Reads session data from cache by session id.
-	/// - Parameters:
-	///   - sessionId: session key
-	///   - req: Vapor.request
+	/// - Parameter req: Vapor.request
 	/// - Returns: Cross-Site Request Forgery if specify
-	public func readCSRF(_ sessionId: String, for req: Request) async throws -> String? {
-		cache[sessionId]?.csrf
+	public func readCSRF(on req: Request) async throws -> String? {
+		if let sessionId = req.cookies["session"]?.string {
+			return cache[sessionId]?.csrf
+		}
+		return nil
 	}
 
 	/// Reads session data from cache by session id.
 	/// - Parameters:
-	///   - sessionId: session key
 	///   - csrf: Cross-Site Request Forgery
 	///   - req: Vapor.request
-	public func setCSRF(_ sessionId: String, csrf: String, for req: Request) async throws {
-		if let session = cache[sessionId] {
+	public func setCSRF(_ csrf: String, on req: Request) async throws {
+		if let sessionId = req.cookies["session"]?.string,
+			let session = cache[sessionId] {
 			session.csrf = csrf
 		}
 	}
 
 	/// Updates the session data in the cache.
 	/// - Parameters:
-	///   - sessionId: session key
 	///   - data: dictionary with session data
 	///   - expires: sessions expires
 	///   - userId: user id
 	///   - req: Vapor.request
 	public func update(
-		_ sessionId: String,
 		data: [String: String],
 		expires: Date,
 		userId: UUID?,
-		for req: Request
+		on req: Request
 	) async throws {
-		if let session = cache[sessionId] {
+		if let sessionId = req.cookies["session"]?.string,
+			let session = cache[sessionId] {
 			if let encoded = try? JSONEncoder().encode(data) {
 				session.data = String(decoding: encoded, as: UTF8.self)
 			}
@@ -103,15 +103,14 @@ public actor DBSessionMemory: DBSessionProtocol {
 
 	/// Updates the session data in the cache.
 	/// - Parameters:
-	///   - sessionId: session key
 	///   - data: dictionary with session data
 	///   - req: Vapor.request
 	public func update(
-		_ sessionId: String,
 		data: [String: String],
-		for req: Request
+		on req: Request
 	) async throws {
-		if let session = cache[sessionId] {
+		if let sessionId = req.cookies["session"]?.string,
+			let session = cache[sessionId] {
 			if let encoded = try? JSONEncoder().encode(data) {
 				session.data = String(decoding: encoded, as: UTF8.self)
 			}
@@ -121,15 +120,14 @@ public actor DBSessionMemory: DBSessionProtocol {
 
 	/// Updates the session data in the cache.
 	/// - Parameters:
-	///   - sessionId: session key
 	///   - expires: sessions expires
 	///   - req: Vapor.request
 	public func update(
-		_ sessionId: String,
 		expires: Date,
-		for req: Request
+		on req: Request
 	) async throws {
-		if let session = cache[sessionId] {
+		if let sessionId = req.cookies["session"]?.string,
+			let session = cache[sessionId] {
 			session.expires = expires
 			cache[sessionId] = session
 		}
@@ -137,25 +135,24 @@ public actor DBSessionMemory: DBSessionProtocol {
 
 	/// Updates the session data in the cache.
 	/// - Parameters:
-	///   - sessionId: session key
 	///   - userId: user id
 	///   - req: Vapor.request
 	public func update(
-		_ sessionId: String,
 		userId: UUID?,
-		for req: Request
+		on req: Request
 	) async throws {
-		if let session = cache[sessionId] {
+		if let cookie = req.cookies["session"],
+			let session = cache[cookie.string] {
 			session.userId = userId
-			cache[sessionId] = session
+			cache[cookie.string] = session
 		}
 	}
 
 	/// Delete session from cache.
-	/// - Parameters:
-	///   - sessionId: session key
-	///   - req: Vapor.request
-	public func delete(_ sessionId: String, for req: Request) async throws {
-		cache[sessionId] = nil
+	/// - Parameter req: Vapor.request
+	public func delete(on req: Request) async throws {
+		if let sessionId = req.cookies["session"]?.string {
+			cache[sessionId] = nil
+		}
 	}
 }

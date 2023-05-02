@@ -41,16 +41,14 @@ public final class DBSessionsMiddleware<T: DBModel & Authenticatable>: AsyncMidd
 		let expires = Date().addingTimeInterval(configuration.timeInterval)
 
 		// Check for an existing session
-		if let cookie = request.cookies[configuration.cookieName],
-		   let session = try await delegate.read(cookie.string, for: request), // read session
+		if let session = try await delegate.read(on: request), // read session
 		   session.expires > Date() {
-			cookieValue = cookie.string
+			cookieValue = session.string
 
 			// Update session.expires
 			try await delegate.update(
-				cookieValue,
 				expires: expires,
-				for: request)
+				on: request)
 
 			// Authenticate
 			if let id = session.userId,
@@ -67,7 +65,7 @@ public final class DBSessionsMiddleware<T: DBModel & Authenticatable>: AsyncMidd
 				data: [:],
 				expires: expires,
 				userId: nil,
-				for: request)
+				on: request)
 
 			request.cookies[configuration.cookieName] = configuration.cookieFactory(
 				cookieValue,
