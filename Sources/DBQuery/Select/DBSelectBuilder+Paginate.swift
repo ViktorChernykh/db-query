@@ -5,6 +5,8 @@
 //  Created by Victor Chernykh on 04.09.2022.
 //
 
+import Vapor
+
 extension DBSelectBuilder {
 	/// Returns a single `Page` out of the complete result set.
 	///
@@ -25,10 +27,10 @@ extension DBSelectBuilder {
 		copy.joins = copy.joins.filter { $0.method == .inner }
 		self.offset = pageRequest.offset
 		self.limit = pageRequest.per
-
+		
 		async let count = copy.count()
 		async let items = self.all(decode: U.self)
-
+		
 		let(models, total) = try await(items, count)
 		return Page(
 			items: models,
@@ -38,6 +40,11 @@ extension DBSelectBuilder {
 				total: total
 			)
 		)
+	}
+	
+	public func paginate<U: Decodable>(decode: U.Type, on req: Request) async throws -> Page<U> {
+		let page = try req.query.decode(PageRequest.self)
+		return try await paginate(page: page.page, per: page.per, decode: decode)
 	}
 }
 
