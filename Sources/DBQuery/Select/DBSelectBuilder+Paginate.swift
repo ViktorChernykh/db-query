@@ -49,7 +49,7 @@ extension DBSelectBuilder {
 }
 
 /// A single section of a larger, traversable result set.
-public struct Page<T: Codable>: Codable {
+public struct Page<T: Codable>: Content {
 	/// The page's items. Usually response models.
 	public let items: [T]
 
@@ -72,7 +72,7 @@ public struct Page<T: Codable>: Codable {
 }
 
 /// Metadata for a given `Page`.
-public struct PageMetadata: Codable {
+public struct PageMetadata: Content {
 	/// Current page number. Starts at `1`.
 	public let page: Int
 
