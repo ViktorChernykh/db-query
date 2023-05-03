@@ -43,8 +43,8 @@ extension DBSelectBuilder {
 	}
 	
 	public func paginate<U: Decodable>(decode: U.Type, on req: Request) async throws -> Page<U> {
-		let page = try req.query.decode(PageRequest.self)
-		return try await paginate(page: page.page, per: page.per, decode: decode)
+		let page = try? req.query.decode(PageRequest.self)
+		return try await paginate(page: page?.page, per: page?.per, decode: decode)
 	}
 }
 
