@@ -51,7 +51,7 @@ extension DBSelectBuilder {
 /// A single section of a larger, traversable result set.
 public struct Page<T: Codable>: Content {
 	/// The page's items. Usually response models.
-	public let items: [T]
+	public var items: [T]
 
 	/// Metadata containing information about current page, items per page, and total items.
 	public let metadata: PageMetadata
