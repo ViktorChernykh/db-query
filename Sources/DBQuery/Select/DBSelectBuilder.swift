@@ -84,6 +84,9 @@ public final class DBSelectBuilder<T: DBModel>: DBFilterSerialize, DBPredicateFo
 			}
 		}
 
+		if self.columns.count == 0 {
+			self.fields()
+		}
 		let cols = self.columns.map { $0.sql }.joined(separator: ", ")
 		query.binds += self.columns.flatMap { $0.binds }
 
