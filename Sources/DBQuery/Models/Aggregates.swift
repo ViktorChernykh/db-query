@@ -5,7 +5,7 @@
 //  Created by Victor Chernykh on 08.09.2022.
 //
 
-public struct AgvResult: Codable {
+public struct DBAgv: Codable {
 	// MARK: Stored Properties
 	public let avg: Int
 
@@ -15,7 +15,7 @@ public struct AgvResult: Codable {
 	}
 }
 
-public struct CountResult: Codable {
+public struct DBCount: Codable {
 	// MARK: Stored Properties
 	public let count: Int
 
@@ -25,7 +25,7 @@ public struct CountResult: Codable {
 	}
 }
 
-public struct MaxResult: Codable {
+public struct DBMax: Codable {
 	// MARK: Stored Properties
 	public let maximum: Int
 
@@ -35,7 +35,7 @@ public struct MaxResult: Codable {
 	}
 }
 
-public struct MinResult: Codable {
+public struct DBMin: Codable {
 	// MARK: Stored Properties
 	public let minimum: Int
 
@@ -45,7 +45,7 @@ public struct MinResult: Codable {
 	}
 }
 
-public struct SumResult: Codable {
+public struct DBSum: Codable {
 	// MARK: Stored Properties
 	public let sum: Int
 
