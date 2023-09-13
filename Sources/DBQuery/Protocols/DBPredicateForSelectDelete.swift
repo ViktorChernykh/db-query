@@ -45,13 +45,13 @@ extension DBPredicateForSelectDelete {
 	///         .filter(s.id == id)
 
 	@discardableResult
-	public func openBrecket() -> Self {
+	public func openBracket() -> Self {
 		self.filters.append(DBRaw("("))
 		return self
 	}
 
 	@discardableResult
-	public func closeBrecket() -> Self {
+	public func closeBracket() -> Self {
 		self.filters.append(DBRaw(")"))
 		return self
 	}

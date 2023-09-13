@@ -37,7 +37,7 @@ extension DBSelectBuilder {
 	}
 
 	@discardableResult
-	public func onOpenBrecket() -> Self {
+	public func onOpenBracket() -> Self {
 		let last = lastJoin()
 		self.joins[last].filters.append(DBRaw("("))
 		
@@ -45,7 +45,7 @@ extension DBSelectBuilder {
 	}
 
 	@discardableResult
-	public func onCloseBrecket() -> Self {
+	public func onCloseBracket() -> Self {
 		let last = lastJoin()
 		self.joins[last].filters.append(DBRaw(")"))
 
