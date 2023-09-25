@@ -182,4 +182,26 @@ public struct DBSessionPostgres: DBSessionProtocol {
 			.filter(sess.string == sessionId)
 			.run()
 	}
+
+	/// Deletes all sessions for the specified user ID.
+	/// - Parameters:
+	///   - userId: ID of the user whose sessions will be deleted.
+	///   - req: Vapor.request
+	public func deleteAll(for userId: UUID, on req: Request) async throws {
+		try await DBSessionModel.delete(on: req.sql)
+			.filter(sess.userId == userId)
+			.run()
+	}
+
+	/// Deletes all sessions for the  user ID except specified sessionId.
+	/// - Parameters:
+	///	  - sessionId: sessionId for exception.
+	///   - userId: ID of the user whose sessions will be deleted.
+	///   - req: Vapor.request
+	public func deleteOther(_ sessionId: String, for userId: UUID, on req: Request) async throws {
+		try await DBSessionModel.delete(on: req.sql)
+			.filter(sess.userId == userId)
+			.filter(sess.string != sessionId)
+			.run()
+	}
 }

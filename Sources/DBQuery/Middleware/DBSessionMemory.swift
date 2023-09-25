@@ -46,7 +46,6 @@ public actor DBSessionMemory: DBSessionProtocol {
 		return session.string
 	}
 
-
 	/// Reads session data from cache by session id.
 	/// - Parameter req: Vapor.request
 	/// - Returns: model  by session key saved in cache
@@ -162,5 +161,37 @@ public actor DBSessionMemory: DBSessionProtocol {
 	///   - req: Vapor.request
 	public func delete(_ sessionId: String, on req: Request) async throws {
 		cache[sessionId] = nil
+	}
+	
+	/// Deletes all sessions for the specified user ID.
+	/// - Parameters:
+	///   - userId: ID of the user whose sessions will be deleted.
+	///   - req: Vapor.request
+	public func deleteAll(for userId: UUID, on req: Request) async throws {
+		var sessionIds = [String]()
+		for (key, value) in await DBSessionMemory.shared.cache {
+			if value.userId == userId {
+				sessionIds.append(key)
+			}
+			for sessionId in sessionIds {
+				try await DBSessionMemory.shared.delete(sessionId, on: req)
+			}
+		}
+	}
+	/// Deletes all sessions for the  user ID except specified sessionId.
+	/// - Parameters:
+	///	  - sessionId: sessionId for exception.
+	///   - userId: ID of the user whose sessions will be deleted.
+	///   - req: Vapor.request
+	public func deleteOther(_ sessionId: String, for userId: UUID, on req: Request) async throws {
+		var sessionIds = [String]()
+		for (key, value) in await DBSessionMemory.shared.cache {
+			if value.userId == userId, value.string != sessionId {
+				sessionIds.append(key)
+			}
+			for sessionId in sessionIds {
+				try await DBSessionMemory.shared.delete(sessionId, on: req)
+			}
+		}
 	}
 }

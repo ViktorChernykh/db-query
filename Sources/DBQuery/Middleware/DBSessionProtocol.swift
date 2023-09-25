@@ -44,4 +44,6 @@ public protocol DBSessionProtocol {
 
 	func delete(on req: Request) async throws
 	func delete(_ sessionId: String, on req: Request) async throws
+	func deleteAll(for userId: UUID, on req: Request) async throws
+	func deleteOther(_ sessionId: String, for userId: UUID, on req: Request) async throws
 }
