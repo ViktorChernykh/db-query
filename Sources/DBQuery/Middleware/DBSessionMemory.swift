@@ -21,14 +21,12 @@ public actor DBSessionMemory: DBSessionProtocol {
 	// MARK: - Methods
 	/// Creates a new session and stores it in the cache.
 	/// - Parameters:
-	///   - csrf: Cross-Site Request Forgery
-	///   - data: dictionary with session data
-	///   - expires: sessions expires
-	///   - userId: user id
-	///   - req: Vapor.request
-	/// - Returns: session id
+	///   - data: dictionary with session data.
+	///   - expires: sessions expires.
+	///   - userId: user id.
+	///   - req: `Vapor.Request`.
+	/// - Returns: session id.
 	public func create(
-		csrf: String? = nil,
 		data: [String: String]? = nil,
 		expires: Date = Date().addingTimeInterval(604_800), // 7 days
 		userId: UUID? = nil,
@@ -36,7 +34,6 @@ public actor DBSessionMemory: DBSessionProtocol {
 	) async throws -> String {
 		let session = DBSessionModel(
 			string: DBSessionModel.generateID(),
-			csrf: csrf,
 			data: data,
 			expires: expires,
 			userId: userId)
@@ -47,8 +44,8 @@ public actor DBSessionMemory: DBSessionProtocol {
 	}
 
 	/// Reads session data from cache by session id.
-	/// - Parameter req: Vapor.request
-	/// - Returns: model  by session key saved in cache
+	/// - Parameter req: `Vapor.Request`.
+	/// - Returns: model  by session key saved in cache.
 	public func read(on req: Request) async throws -> DBSessionModel? {
 		if let sessionId = req.cookies["session"]?.string {
 			return cache[sessionId]
@@ -56,33 +53,35 @@ public actor DBSessionMemory: DBSessionProtocol {
 		return nil
 	}
 
-	/// Reads session data from cache by session id.
-	/// - Parameter req: Vapor.request
-	/// - Returns: Cross-Site Request Forgery if specify
-	public func readCSRF(on req: Request) async throws -> String? {
+	/// Reads session CSRF from the cache by session ID.
+	/// - Parameter req: `Vapor.Request`.
+	/// - Returns: Cross-Site Request Forgery if specify.
+	public func readCSRF(on req: Request) async throws -> CSRF? {
 		if let sessionId = req.cookies["session"]?.string {
-			return cache[sessionId]?.csrf
+			if let session = cache[sessionId] {
+				return CSRF(csrf: session.csrf, csrfExpired: session.csrfExpired)
+			}
 		}
 		return nil
 	}
 
 	/// Reads session data from cache by session id.
-	/// - Parameters:
-	///   - csrf: Cross-Site Request Forgery
-	///   - req: Vapor.request
-	public func setCSRF(_ csrf: String, on req: Request) async throws {
+	/// - Parameter req: `Vapor.Request`.
+	public func updateCSRF(on req: Request) async throws {
 		if let sessionId = req.cookies["session"]?.string,
 			let session = cache[sessionId] {
-			session.csrf = csrf
+			session.csrf = Data([UInt8].random(count: 16)).base32EncodedString()
+			session.csrfExpired = Date().addingTimeInterval(3600)
+			cache[sessionId] = session
 		}
 	}
 
 	/// Updates the session data in the cache.
 	/// - Parameters:
-	///   - data: dictionary with session data
-	///   - expires: sessions expires
-	///   - userId: user id
-	///   - req: Vapor.request
+	///   - data: dictionary with session data.
+	///   - expires: sessions expires.
+	///   - userId: user id.
+	///   - req: `Vapor.Request`.
 	public func update(
 		data: [String: String],
 		expires: Date,
@@ -90,7 +89,7 @@ public actor DBSessionMemory: DBSessionProtocol {
 		on req: Request
 	) async throws {
 		if let sessionId = req.cookies["session"]?.string,
-			let session = cache[sessionId] {
+		   let session = cache[sessionId] {
 			if let encoded = try? JSONEncoder().encode(data) {
 				session.data = String(decoding: encoded, as: UTF8.self)
 			}
@@ -102,14 +101,14 @@ public actor DBSessionMemory: DBSessionProtocol {
 
 	/// Updates the session data in the cache.
 	/// - Parameters:
-	///   - data: dictionary with session data
-	///   - req: Vapor.request
+	///   - data: dictionary with session data.
+	///   - req: `Vapor.Request`.
 	public func update(
 		data: [String: String],
 		on req: Request
 	) async throws {
 		if let sessionId = req.cookies["session"]?.string,
-			let session = cache[sessionId] {
+		   let session = cache[sessionId] {
 			if let encoded = try? JSONEncoder().encode(data) {
 				session.data = String(decoding: encoded, as: UTF8.self)
 			}
@@ -119,14 +118,14 @@ public actor DBSessionMemory: DBSessionProtocol {
 
 	/// Updates the session data in the cache.
 	/// - Parameters:
-	///   - expires: sessions expires
-	///   - req: Vapor.request
+	///   - expires: sessions expires.
+	///   - req: `Vapor.Request`.
 	public func update(
 		expires: Date,
 		on req: Request
 	) async throws {
 		if let sessionId = req.cookies["session"]?.string,
-			let session = cache[sessionId] {
+		   let session = cache[sessionId] {
 			session.expires = expires
 			cache[sessionId] = session
 		}
@@ -134,21 +133,21 @@ public actor DBSessionMemory: DBSessionProtocol {
 
 	/// Updates the session data in the cache.
 	/// - Parameters:
-	///   - userId: user id
-	///   - req: Vapor.request
+	///   - userId: user id.
+	///   - req: `Vapor.Request`.
 	public func update(
 		userId: UUID?,
 		on req: Request
 	) async throws {
 		if let cookie = req.cookies["session"],
-			let session = cache[cookie.string] {
+		   let session = cache[cookie.string] {
 			session.userId = userId
 			cache[cookie.string] = session
 		}
 	}
 
 	/// Delete session from cache.
-	/// - Parameter req: Vapor.request
+	/// - Parameter req: `Vapor.Request`.
 	public func delete(on req: Request) async throws {
 		if let sessionId = req.cookies["session"]?.string {
 			cache[sessionId] = nil
@@ -157,8 +156,8 @@ public actor DBSessionMemory: DBSessionProtocol {
 
 	/// Delete session from cache.
 	/// - Parameters:
-	///   - sessionId: session key
-	///   - req: Vapor.request
+	///   - sessionId: session key.
+	///   - req: `Vapor.Request`.
 	public func delete(_ sessionId: String, on req: Request) async throws {
 		cache[sessionId] = nil
 	}
@@ -166,7 +165,7 @@ public actor DBSessionMemory: DBSessionProtocol {
 	/// Deletes all sessions for the specified user ID.
 	/// - Parameters:
 	///   - userId: ID of the user whose sessions will be deleted.
-	///   - req: Vapor.request
+	///   - req: `Vapor.Request`.
 	public func deleteAll(for userId: UUID, on req: Request) async throws {
 		var sessionIds = [String]()
 		for (key, value) in await DBSessionMemory.shared.cache {
@@ -182,7 +181,7 @@ public actor DBSessionMemory: DBSessionProtocol {
 	/// - Parameters:
 	///	  - sessionId: sessionId for exception.
 	///   - userId: ID of the user whose sessions will be deleted.
-	///   - req: Vapor.request
+	///   - req: `Vapor.Request`.
 	public func deleteOther(_ sessionId: String, for userId: UUID, on req: Request) async throws {
 		var sessionIds = [String]()
 		for (key, value) in await DBSessionMemory.shared.cache {

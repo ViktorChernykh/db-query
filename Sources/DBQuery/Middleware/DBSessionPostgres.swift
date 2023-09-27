@@ -17,14 +17,12 @@ public struct DBSessionPostgres: DBSessionProtocol {
 
 	/// Creates a new session and stores it in the database.
 	/// - Parameters:
-	///   - csrf: Cross-Site Request Forgery
-	///   - data: dictionary with session data
-	///   - expires: sessions expires
-	///   - userId: user id
-	///   - req: Vapor.request
+	///   - data: dictionary with session data.
+	///   - expires: sessions expires.
+	///   - userId: user id.
+	///   - req: `Vapor.Request`.
 	/// - Returns: session id
 	public func create(
-		csrf: String? = nil,
 		data: [String: String]? = nil,
 		expires: Date = Date().addingTimeInterval(604_800), // 7 days
 		userId: UUID? = nil,
@@ -32,7 +30,6 @@ public struct DBSessionPostgres: DBSessionProtocol {
 	) async throws -> String {
 		let session = DBSessionModel(
 			string: DBSessionModel.generateID(),
-			csrf: csrf,
 			data: data,
 			expires: expires,
 			userId: userId)
@@ -42,8 +39,8 @@ public struct DBSessionPostgres: DBSessionProtocol {
 	}
 
 	/// Reads session data from cache by session id.
-	/// - Parameter req: Vapor.request
-	/// - Returns: model  by session key saved in cache
+	/// - Parameter req: `Vapor.Request`.
+	/// - Returns: model  by session key saved in cache.
 	public func read(on req: Request) async throws -> DBSessionModel? {
 		if let sessionId = req.cookies["session"]?.string {
 			return try await DBSessionModel.select(on: req.sql)
@@ -55,40 +52,39 @@ public struct DBSessionPostgres: DBSessionProtocol {
 	}
 
 	/// Reads session data from cache by session id.
-	/// - Parameter req: Vapor.request
-	/// - Returns: Cross-Site Request Forgery if specify
-	public func readCSRF(on req: Request) async throws -> String? {
-		struct Csrf: Codable {
-			let csrf: String
-		}
+	/// - Parameter req: `Vapor.Request`.
+	/// - Returns: Cross-Site Request Forgery if specify.
+	public func readCSRF(on req: Request) async throws -> CSRF? {
 		if let sessionId = req.cookies["session"]?.string {
 			return try await DBSessionModel.select(on: req.sql)
-				.field(sess.csrf)
+				.fields(sess.csrf, sess.csrfExpired)
 				.filter(sess.string == sessionId)
-				.first(decode: Csrf.self)?.csrf
+				.first(decode: CSRF.self)
 		}
 		return nil
 	}
 
 	/// Reads session data from cache by session id.
-	/// - Parameters:
-	///   - csrf: Cross-Site Request Forgery
-	///   - req: Vapor.request
-	public func setCSRF(_ csrf: String, on req: Request) async throws {
+	/// - Parameter req: `Vapor.Request`.
+	public func updateCSRF(on req: Request) async throws {
+		let csrf = Data([UInt8].random(count: 16)).base32EncodedString()
+		let csrfExpired = Date().addingTimeInterval(3600)
+
 		if let sessionId = req.cookies["session"]?.string {
 			try await DBSessionModel.update(on: req.sql)
 				.filter(sess.string == sessionId)
 				.set(sess.csrf, to: csrf)
+				.set(sess.csrfExpired, to: csrfExpired)
 				.run()
 		}
 	}
 
 	/// Updates the session data in the database.
 	/// - Parameters:
-	///   - data: dictionary with session data
-	///   - expires: sessions expires
-	///   - userId: user id
-	///   - req: Vapor.request
+	///   - data: dictionary with session data.
+	///   - expires: sessions expires.
+	///   - userId: user id.
+	///   - req: `Vapor.Request`.
 	public func update(
 		data: [String: String],
 		expires: Date,
@@ -112,8 +108,8 @@ public struct DBSessionPostgres: DBSessionProtocol {
 
 	/// Updates the session data in the database.
 	/// - Parameters:
-	///   - data: session data encoded to string
-	///   - req: Vapor.request
+	///   - data: session data encoded to string.
+	///   - req: `Vapor.Request`.
 	public func update(
 		data: [String: String],
 		on req: Request
@@ -132,8 +128,8 @@ public struct DBSessionPostgres: DBSessionProtocol {
 
 	/// Updates the session data in the database.
 	/// - Parameters:
-	///   - expires: sessions expires
-	///   - req: Vapor.request
+	///   - expires: sessions expires.
+	///   - req: `Vapor.Request`.
 	public func update(
 		expires: Date,
 		on req: Request
@@ -149,8 +145,8 @@ public struct DBSessionPostgres: DBSessionProtocol {
 
 	/// Updates the session data in the database.
 	/// - Parameters:
-	///   - userId: user id
-	///   - req: Vapor.request
+	///   - userId: user id.
+	///   - req: `Vapor.Request`.
 	public func update(
 		userId: UUID?,
 		on req: Request
@@ -165,7 +161,7 @@ public struct DBSessionPostgres: DBSessionProtocol {
 	}
 
 	/// Delete session from database.
-	/// - Parameter req: Vapor.request
+	/// - Parameter req: `Vapor.Request`.
 	public func delete(on req: Request) async throws {
 		guard let sessionId = req.cookies["session"]?.string else { return }
 		try await DBSessionModel.delete(on: req.sql)
@@ -175,8 +171,8 @@ public struct DBSessionPostgres: DBSessionProtocol {
 
 	/// Delete session from database.
 	/// - Parameters:
-	///   - sessionId: session key
-	///   - req: Vapor.request
+	///   - sessionId: session key.
+	///   - req: `Vapor.Request`.
 	public func delete(_ sessionId: String, on req: Request) async throws {
 		try await DBSessionModel.delete(on: req.sql)
 			.filter(sess.string == sessionId)
@@ -186,7 +182,7 @@ public struct DBSessionPostgres: DBSessionProtocol {
 	/// Deletes all sessions for the specified user ID.
 	/// - Parameters:
 	///   - userId: ID of the user whose sessions will be deleted.
-	///   - req: Vapor.request
+	///   - req: `Vapor.Request`.
 	public func deleteAll(for userId: UUID, on req: Request) async throws {
 		try await DBSessionModel.delete(on: req.sql)
 			.filter(sess.userId == userId)
@@ -197,7 +193,7 @@ public struct DBSessionPostgres: DBSessionProtocol {
 	/// - Parameters:
 	///	  - sessionId: sessionId for exception.
 	///   - userId: ID of the user whose sessions will be deleted.
-	///   - req: Vapor.request
+	///   - req: `Vapor.Request`.
 	public func deleteOther(_ sessionId: String, for userId: UUID, on req: Request) async throws {
 		try await DBSessionModel.delete(on: req.sql)
 			.filter(sess.userId == userId)

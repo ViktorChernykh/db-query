@@ -46,9 +46,11 @@ public final class DBSessionsMiddleware<T: DBModel & Authenticatable>: AsyncMidd
 			cookieValue = session.string
 
 			// Update session.expires
-			try await delegate.update(
-				expires: expires,
-				on: request)
+			try await delegate.update(expires: expires, on: request)
+
+			if session.csrfExpired < Date() {
+				try await delegate.updateCSRF(on: request)
+			}
 
 			// Authenticate
 			if let id = session.userId,
@@ -61,7 +63,6 @@ public final class DBSessionsMiddleware<T: DBModel & Authenticatable>: AsyncMidd
 		} else {
 			// create new session
 			cookieValue = try await delegate.create(
-				csrf: nil,
 				data: [:],
 				expires: expires,
 				userId: nil,

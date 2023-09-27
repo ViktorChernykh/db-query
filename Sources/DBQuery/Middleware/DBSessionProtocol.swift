@@ -10,15 +10,14 @@ import Vapor
 /// Capable of managing CRUD operations for `Session`s.
 public protocol DBSessionProtocol {
 	func create(
-		csrf: String?,
 		data: [String: String]?,
 		expires: Date,
 		userId: UUID?,
 		on req: Request) async throws -> String
 
 	func read(on req: Request) async throws -> DBSessionModel?
-	func readCSRF(on req: Request) async throws -> String?
-	func setCSRF(_ csrf: String, on req: Request) async throws
+	func readCSRF(on req: Request) async throws -> CSRF?
+	func updateCSRF(on req: Request) async throws
 
 	func update(
 		data: [String: String],
@@ -37,6 +36,7 @@ public protocol DBSessionProtocol {
 		on req: Request
 	) async throws
 
+	/// Make the session authorized.
 	func update(
 		userId: UUID?,
 		on req: Request
