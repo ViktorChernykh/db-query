@@ -5,6 +5,7 @@
 //  Created by Victor Chernykh on 30.01.2023.
 //
 
+import SQLKit
 import Vapor
 
 /// Capable of managing CRUD operations for `Session`s.
@@ -35,5 +36,5 @@ public protocol DBSessionProtocol {
 	func delete(_ sessionId: String, on req: Request) async throws
 	func deleteAll(for userId: UUID, on req: Request) async throws
 	func deleteOther(_ sessionId: String, for userId: UUID, on req: Request) async throws
-	func deleteExpired(on req: Request) async throws
+	func deleteExpired(on sql: SQLDatabase) async throws
 }

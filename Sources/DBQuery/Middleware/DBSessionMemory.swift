@@ -5,6 +5,7 @@
 //  Created by Victor Chernykh on 30.01.2023.
 //
 
+import SQLKit
 import Vapor
 
 /// Singleton for storage in memory.
@@ -163,8 +164,8 @@ public actor DBSessionMemory: DBSessionProtocol {
 	}
 
 	/// Deletes all expired sessions.
-	/// - Parameter req: `Vapor.Request`.
-	public func deleteExpired(on req: Request) async throws {
+	/// - Parameter sql: `SQLKit.SQLDatabase`.
+	public func deleteExpired(on sql: SQLDatabase) async throws {
 		var sessionIds = [String]()
 		for (key, value) in await DBSessionMemory.shared.cache {
 			if value.expires < Date() {

@@ -5,6 +5,7 @@
 //  Created by Victor Chernykh on 30.01.2023.
 //
 
+import SQLKit
 import Vapor
 
 /// Implementation DBSessionProtocol for Postgres database.
@@ -163,9 +164,9 @@ public struct DBSessionPostgres: DBSessionProtocol {
 	}
 
 	/// Deletes all expired sessions.
-	/// - Parameter req: `Vapor.Request`.
-	public func deleteExpired(on req: Request) async throws {
-		try await DBSessionModel.delete(on: req.sql)
+	/// - Parameter sql: `SQLKit.SQLDatabase`.
+	public func deleteExpired(on sql: SQLDatabase) async throws {
+		try await DBSessionModel.delete(on: sql)
 			.filter(sess.expires < Date())
 			.run()
 	}
