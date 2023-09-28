@@ -141,7 +141,7 @@ public actor DBSessionMemory: DBSessionProtocol {
 				sessionIds.append(key)
 			}
 			for sessionId in sessionIds {
-				try await DBSessionMemory.shared.delete(sessionId, on: req)
+				cache[sessionId] = nil
 			}
 		}
 	}
@@ -157,7 +157,7 @@ public actor DBSessionMemory: DBSessionProtocol {
 				sessionIds.append(key)
 			}
 			for sessionId in sessionIds {
-				try await DBSessionMemory.shared.delete(sessionId, on: req)
+				cache[sessionId] = nil
 			}
 		}
 	}
@@ -171,7 +171,7 @@ public actor DBSessionMemory: DBSessionProtocol {
 				sessionIds.append(key)
 			}
 			for sessionId in sessionIds {
-				try await DBSessionMemory.shared.delete(sessionId, on: req)
+				cache[sessionId] = nil
 			}
 		}
 	}
