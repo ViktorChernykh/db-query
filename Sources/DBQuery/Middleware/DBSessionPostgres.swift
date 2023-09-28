@@ -161,4 +161,12 @@ public struct DBSessionPostgres: DBSessionProtocol {
 			.filter(sess.string != sessionId)
 			.run()
 	}
+
+	/// Deletes all expired sessions.
+	/// - Parameter req: `Vapor.Request`.
+	public func deleteExpired(on req: Request) async throws {
+		try await DBSessionModel.delete(on: req.sql)
+			.filter(sess.expires < Date())
+			.run()
+	}
 }

@@ -161,4 +161,18 @@ public actor DBSessionMemory: DBSessionProtocol {
 			}
 		}
 	}
+
+	/// Deletes all expired sessions.
+	/// - Parameter req: `Vapor.Request`.
+	public func deleteExpired(on req: Request) async throws {
+		var sessionIds = [String]()
+		for (key, value) in await DBSessionMemory.shared.cache {
+			if value.expires < Date() {
+				sessionIds.append(key)
+			}
+			for sessionId in sessionIds {
+				try await DBSessionMemory.shared.delete(sessionId, on: req)
+			}
+		}
+	}
 }
