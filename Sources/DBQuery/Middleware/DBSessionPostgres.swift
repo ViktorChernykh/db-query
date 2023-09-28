@@ -88,8 +88,7 @@ public struct DBSessionPostgres: DBSessionProtocol {
 				.filter(sess.string == sessionId)
 			if let csrf {
 				query.set(sess.csrf, to: csrf)
-			}
-			if let csrfExpires {
+				let csrfExpires = csrfExpires ?? Date().addingTimeInterval(3600)
 				query.set(sess.csrfExpires, to: csrfExpires)
 			}
 			if let data {

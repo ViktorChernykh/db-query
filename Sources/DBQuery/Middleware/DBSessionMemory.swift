@@ -88,9 +88,7 @@ public actor DBSessionMemory: DBSessionProtocol {
 		   let session = cache[sessionId] {
 			if let csrf {
 				session.csrf = csrf
-			}
-			if let csrfExpires {
-				session.csrfExpires = csrfExpires
+				session.csrfExpires = csrfExpires ?? Date().addingTimeInterval(3600)
 			}
 			if let data {
 				if let encoded = try? JSONEncoder().encode(data) {
