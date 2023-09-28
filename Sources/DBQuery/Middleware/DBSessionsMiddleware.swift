@@ -14,6 +14,8 @@ public final class DBSessionsMiddleware<T: DBModel & Authenticatable>: AsyncMidd
 	public let configuration: DBSessionsConfiguration
 	/// Session store.
 	public let delegate: DBSessionProtocol
+	/// Closure to make any action if
+	public let action: (Request) async throws -> Void
 
 	/// Creates a new `SessionsMiddleware`.
 	///
@@ -22,7 +24,8 @@ public final class DBSessionsMiddleware<T: DBModel & Authenticatable>: AsyncMidd
 	///     - storage: `StorageDelegate` implementation to use for fetching and storing sessions.
 	public init(
 		configuration: DBSessionsConfiguration,
-		storage: DBStorageDelegate
+		storage: DBStorageDelegate,
+		action: @escaping (Request) async throws -> Void
 	) {
 		self.configuration = configuration
 
@@ -34,6 +37,7 @@ public final class DBSessionsMiddleware<T: DBModel & Authenticatable>: AsyncMidd
 		case .custom(let driver):
 			self.delegate = driver
 		}
+		self.action = action
 	}
 
 	public func respond(to request: Request, chainingTo next: AsyncResponder) async throws -> Response {
@@ -52,6 +56,7 @@ public final class DBSessionsMiddleware<T: DBModel & Authenticatable>: AsyncMidd
 			if session.csrfExpires < Date() {
 				csrf = Data([UInt8].random(count: 16)).base32EncodedString()
 				csrfExpires = Date().addingTimeInterval(configuration.csrfTimeInterval)
+				try await action(request)
 			}
 			// Update session
 			try await delegate.update(
