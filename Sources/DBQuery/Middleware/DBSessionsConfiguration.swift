@@ -16,6 +16,9 @@ public struct DBSessionsConfiguration {
 	/// The cookie's expiration.
 	public let timeInterval: Double
 
+	/// The csrf's expiration.
+	public let csrfTimeInterval: Double
+
 	/// Does not expose the cookie over non-HTTP channels.
 	public let isHTTPOnly: Bool
 
@@ -42,6 +45,7 @@ public struct DBSessionsConfiguration {
 	public init(
 		domain: String? = nil,
 		timeInterval: Double = 604_800, // one week
+		csrfTimeInterval: Double = 3600, // one hour
 		isHTTPOnly: Bool = false,
 		isSecure: Bool = false,
 		maxAge: Int? = nil,
@@ -51,6 +55,7 @@ public struct DBSessionsConfiguration {
 	) {
 		self.domain = domain
 		self.timeInterval = timeInterval
+		self.csrfTimeInterval = csrfTimeInterval
 		self.isHTTPOnly = isHTTPOnly
 		self.isSecure = isSecure
 		self.maxAge = maxAge

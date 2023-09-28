@@ -17,19 +17,24 @@ public struct DBSessionPostgres: DBSessionProtocol {
 
 	/// Creates a new session and stores it in the database.
 	/// - Parameters:
+	///   - csrf: CSRF string.
+	///   - csrfExpires: CSRF's expiration date.
 	///   - data: dictionary with session data.
 	///   - expires: sessions expires.
 	///   - userId: user id.
 	///   - req: `Vapor.Request`.
 	/// - Returns: session id
 	public func create(
+		csrf: String = Data([UInt8].random(count: 16)).base32EncodedString(),
+		csrfExpires: Date = Date().addingTimeInterval(3600),
 		data: [String: String]? = nil,
 		expires: Date = Date().addingTimeInterval(604_800), // 7 days
 		userId: UUID? = nil,
 		on req: Request
 	) async throws -> String {
 		let session = DBSessionModel(
-			string: DBSessionModel.generateID(),
+			csrf: csrf,
+			csrfExpires: csrfExpires,
 			data: data,
 			expires: expires,
 			userId: userId)
@@ -57,88 +62,45 @@ public struct DBSessionPostgres: DBSessionProtocol {
 	public func readCSRF(on req: Request) async throws -> CSRF? {
 		if let sessionId = req.cookies["session"]?.string {
 			return try await DBSessionModel.select(on: req.sql)
-				.fields(sess.csrf, sess.csrfExpired)
+				.fields(sess.csrf, sess.csrfExpires)
 				.filter(sess.string == sessionId)
 				.first(decode: CSRF.self)
 		}
 		return nil
 	}
 
-	/// Reads session data from cache by session id.
-	/// - Parameter req: `Vapor.Request`.
-	public func updateCSRF(on req: Request) async throws {
-		let csrf = Data([UInt8].random(count: 16)).base32EncodedString()
-		let csrfExpired = Date().addingTimeInterval(3600)
-
-		if let sessionId = req.cookies["session"]?.string {
-			try await DBSessionModel.update(on: req.sql)
-				.filter(sess.string == sessionId)
-				.set(sess.csrf, to: csrf)
-				.set(sess.csrfExpired, to: csrfExpired)
-				.run()
-		}
-	}
-
 	/// Updates the session data in the database.
 	/// - Parameters:
+	///   - csrf: CSRF string.
+	///   - csrfExpires: CSRF's expiration date.
 	///   - data: dictionary with session data.
 	///   - expires: sessions expires.
-	///   - userId: user id.
 	///   - req: `Vapor.Request`.
 	public func update(
-		data: [String: String],
-		expires: Date,
-		userId: UUID?,
+		csrf: String? = nil,
+		csrfExpires: Date? = nil,
+		data: [String: String]? = nil,
+		expires: Date? = nil,
 		on req: Request
 	) async throws {
 		if let sessionId = req.cookies["session"]?.string {
 			let query = DBSessionModel.update(on: req.sql)
 				.filter(sess.string == sessionId)
-				.set(sess.expires, to: expires)
-				.set(sess.userId, to: userId)
-
-			if let encoded = try? JSONEncoder().encode(data) {
-				let string = String(decoding: encoded, as: UTF8.self)
-				query.set(sess.data, to: string)
+			if let csrf {
+				query.set(sess.csrf, to: csrf)
 			}
-
-			try await query.run()
-		}
-	}
-
-	/// Updates the session data in the database.
-	/// - Parameters:
-	///   - data: session data encoded to string.
-	///   - req: `Vapor.Request`.
-	public func update(
-		data: [String: String],
-		on req: Request
-	) async throws {
-		if let sessionId = req.cookies["session"]?.string {
-			let query = DBSessionModel.update(on: req.sql)
-				.filter(sess.string == sessionId)
-
-			if let encoded = try? JSONEncoder().encode(data) {
-				let string = String(decoding: encoded, as: UTF8.self)
-				query.set(sess.data, to: string)
-				try await query.run()
+			if let csrfExpires {
+				query.set(sess.csrfExpires, to: csrfExpires)
 			}
-		}
-	}
-
-	/// Updates the session data in the database.
-	/// - Parameters:
-	///   - expires: sessions expires.
-	///   - req: `Vapor.Request`.
-	public func update(
-		expires: Date,
-		on req: Request
-	) async throws {
-		if let sessionId = req.cookies["session"]?.string {
-			let query = DBSessionModel.update(on: req.sql)
-				.filter(sess.string == sessionId)
-				.set(sess.expires, to: expires)
-
+			if let data {
+				if let encoded = try? JSONEncoder().encode(data) {
+					let string = String(decoding: encoded, as: UTF8.self)
+					query.set(sess.data, to: string)
+				}
+			}
+			if let expires {
+				query.set(sess.expires, to: expires)
+			}
 			try await query.run()
 		}
 	}

@@ -45,12 +45,22 @@ public final class DBSessionsMiddleware<T: DBModel & Authenticatable>: AsyncMidd
 		   session.expires > Date() {
 			cookieValue = session.string
 
-			// Update session.expires
-			try await delegate.update(expires: expires, on: request)
+			// Regenerate CSRF
+			var csrf: String? = nil
+			var csrfExpires: Date? = nil
 
-			if session.csrfExpired < Date() {
-				try await delegate.updateCSRF(on: request)
+			if session.csrfExpires < Date() {
+				csrf = Data([UInt8].random(count: 16)).base32EncodedString()
+				csrfExpires = Date().addingTimeInterval(configuration.csrfTimeInterval)
 			}
+			// Update session
+			try await delegate.update(
+				csrf: csrf,
+				csrfExpires: csrfExpires,
+				data: nil,	// nil mean will not update
+				expires: expires,
+				on: request)
+
 
 			// Authenticate
 			if let id = session.userId,
@@ -63,6 +73,8 @@ public final class DBSessionsMiddleware<T: DBModel & Authenticatable>: AsyncMidd
 		} else {
 			// create new session
 			cookieValue = try await delegate.create(
+				csrf: Data([UInt8].random(count: 16)).base32EncodedString(),
+				csrfExpires: Date().addingTimeInterval(configuration.csrfTimeInterval),
 				data: [:],
 				expires: expires,
 				userId: nil,

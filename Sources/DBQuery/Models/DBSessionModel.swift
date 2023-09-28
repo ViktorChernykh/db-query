@@ -11,7 +11,7 @@ import Vapor
 
 public struct CSRF: Codable {
 	public let csrf: String
-	public let csrfExpired: Date
+	public let csrfExpires: Date
 }
 
 public typealias sess = DBSessionModel.v1
@@ -36,7 +36,7 @@ public final class DBSessionModel: DBModel {
 				.id()
 				.field(v1.string, .custom("VARCHAR(64)"), .required)
 				.field(v1.csrf, .custom("VARCHAR(64)"), .required)
-				.field(v1.csrfExpired, .datetime, .required)
+				.field(v1.csrfExpires, .datetime, .required)
 				.field(v1.data, .string)
 				.field(v1.expires, .datetime, .required)
 				.field(v1.userId, .uuid)
@@ -62,7 +62,7 @@ public final class DBSessionModel: DBModel {
 	public var id: UUID
 	public var string: String
 	public var csrf: String
-	public var csrfExpired: Date
+	public var csrfExpires: Date
 	public var data: String?
 	public var expires: Date
 	public var userId: UUID?
@@ -71,7 +71,7 @@ public final class DBSessionModel: DBModel {
 		id: UUID = UUID(),
 		string: String? = nil,
 		csrf: String = Data([UInt8].random(count: 16)).base32EncodedString(),
-		csrfExpired: Date = Date().addingTimeInterval(3600),
+		csrfExpires: Date = Date().addingTimeInterval(3600),
 		data: [String: String]? = nil,
 		expires: Date,
 		userId: UUID? = nil
@@ -79,7 +79,7 @@ public final class DBSessionModel: DBModel {
 		self.id = id
 		self.string = string ?? Self.generateID()
 		self.csrf = csrf
-		self.csrfExpired = csrfExpired
+		self.csrfExpires = csrfExpires
 
 		if let dictionary = data, let encoded = try? JSONEncoder().encode(dictionary) {
 			self.data = String(decoding: encoded, as: UTF8.self)
@@ -99,7 +99,7 @@ extension DBSessionModel {
 		public static let id = Column("id", Self.alias)
 		public static let string = Column("string", Self.alias)
 		public static let csrf = Column("csrf", Self.alias)
-		public static let csrfExpired = Column("csrfExpired", Self.alias)
+		public static let csrfExpires = Column("csrfExpires", Self.alias)
 		public static let data = Column("data", Self.alias)
 		public static let expires = Column("expires", Self.alias)
 		public static let userId = Column("userId", Self.alias)
@@ -111,7 +111,7 @@ extension DBSessionModel {
 	@discardableResult
 	public func create(on db: SQLDatabase) async throws -> UUID {
 		let sql = "INSERT INTO \(col: v1.schema) VALUES($1, $2, $3, $4, $5, $6, $7);"
-		let binds: [Encodable] = [id, string, csrf, csrfExpired, data, expires, userId]
+		let binds: [Encodable] = [id, string, csrf, csrfExpires, data, expires, userId]
 		let query = SQLRaw(sql, binds)
 		try await db.raw(query).run()
 
