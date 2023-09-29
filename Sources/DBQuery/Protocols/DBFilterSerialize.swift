@@ -16,6 +16,9 @@ extension DBFilterSerialize {
 
 		for filter in filters {
 			let binds = filter.binds
+			if filter.sql.suffix(4) == " IN ", binds.isEmpty {
+				continue
+			}
 			query.sql += filter.sql
 
 			if binds.count > 0 {
