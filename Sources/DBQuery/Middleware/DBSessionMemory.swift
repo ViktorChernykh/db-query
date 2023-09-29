@@ -23,7 +23,6 @@ public actor DBSessionMemory: DBSessionProtocol {
 	/// Creates a new session and stores it in the cache.
 	/// - Parameters:
 	///   - csrf: CSRF string.
-	///   - csrfExpired: CSRF's expiration date.
 	///   - data: dictionary with session data.
 	///   - expires: sessions expires.
 	///   - userId: user id.
@@ -31,7 +30,6 @@ public actor DBSessionMemory: DBSessionProtocol {
 	/// - Returns: session id.
 	public func create(
 		csrf: String = Data([UInt8].random(count: 16)).base32EncodedString(),
-		csrfExpires: Date = Date().addingTimeInterval(3600),
 		data: [String: String]? = nil,
 		expires: Date = Date().addingTimeInterval(604_800), // 7 days
 		userId: UUID? = nil,
@@ -39,7 +37,6 @@ public actor DBSessionMemory: DBSessionProtocol {
 	) async throws -> String {
 		let session = DBSessionModel(
 			csrf: csrf,
-			csrfExpires: csrfExpires,
 			data: data,
 			expires: expires,
 			userId: userId)
@@ -62,10 +59,10 @@ public actor DBSessionMemory: DBSessionProtocol {
 	/// Reads session CSRF from the cache by session ID.
 	/// - Parameter req: `Vapor.Request`.
 	/// - Returns: Cross-Site Request Forgery if specify.
-	public func readCSRF(on req: Request) async throws -> CSRF? {
+	public func readCSRF(on req: Request) async throws -> String? {
 		if let sessionId = req.cookies["session"]?.string {
 			if let session = cache[sessionId] {
-				return CSRF(csrf: session.csrf, csrfExpires: session.csrfExpires)
+				return session.csrf
 			}
 		}
 		return nil
@@ -73,24 +70,16 @@ public actor DBSessionMemory: DBSessionProtocol {
 
 	/// Updates the session data in the cache.
 	/// - Parameters:
-	///   - csrf: CSRF string.
-	///   - csrfExpired: CSRF's expiration date.
 	///   - data: dictionary with session data.
 	///   - expires: sessions expires.
 	///   - req: `Vapor.Request`.
 	public func update(
-		csrf: String? = nil,
-		csrfExpires: Date? = nil,
 		data: [String: String]? = nil,
 		expires: Date? = nil,
 		on req: Request
 	) async throws {
 		if let sessionId = req.cookies["session"]?.string,
 		   let session = cache[sessionId] {
-			if let csrf {
-				session.csrf = csrf
-				session.csrfExpires = csrfExpires ?? Date().addingTimeInterval(3600)
-			}
 			if let data {
 				if let encoded = try? JSONEncoder().encode(data) {
 					session.data = String(decoding: encoded, as: UTF8.self)

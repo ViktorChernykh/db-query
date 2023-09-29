@@ -12,18 +12,15 @@ import Vapor
 public protocol DBSessionProtocol {
 	func create(
 		csrf: String,
-		csrfExpires: Date,
 		data: [String: String]?,
 		expires: Date,
 		userId: UUID?,
 		on req: Request) async throws -> String
 
 	func read(on req: Request) async throws -> DBSessionModel?
-	func readCSRF(on req: Request) async throws -> CSRF?
+	func readCSRF(on req: Request) async throws -> String?
 
 	func update(
-		csrf: String?,
-		csrfExpires: Date?,
 		data: [String: String]?,
 		expires: Date?,
 		on req: Request

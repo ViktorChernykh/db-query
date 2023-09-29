@@ -19,7 +19,6 @@ public struct DBSessionPostgres: DBSessionProtocol {
 	/// Creates a new session and stores it in the database.
 	/// - Parameters:
 	///   - csrf: CSRF string.
-	///   - csrfExpires: CSRF's expiration date.
 	///   - data: dictionary with session data.
 	///   - expires: sessions expires.
 	///   - userId: user id.
@@ -27,7 +26,6 @@ public struct DBSessionPostgres: DBSessionProtocol {
 	/// - Returns: session id
 	public func create(
 		csrf: String = Data([UInt8].random(count: 16)).base32EncodedString(),
-		csrfExpires: Date = Date().addingTimeInterval(3600),
 		data: [String: String]? = nil,
 		expires: Date = Date().addingTimeInterval(604_800), // 7 days
 		userId: UUID? = nil,
@@ -35,7 +33,6 @@ public struct DBSessionPostgres: DBSessionProtocol {
 	) async throws -> String {
 		let session = DBSessionModel(
 			csrf: csrf,
-			csrfExpires: csrfExpires,
 			data: data,
 			expires: expires,
 			userId: userId)
@@ -60,26 +57,22 @@ public struct DBSessionPostgres: DBSessionProtocol {
 	/// Reads session data from cache by session id.
 	/// - Parameter req: `Vapor.Request`.
 	/// - Returns: Cross-Site Request Forgery if specify.
-	public func readCSRF(on req: Request) async throws -> CSRF? {
+	public func readCSRF(on req: Request) async throws -> String? {
 		if let sessionId = req.cookies["session"]?.string {
 			return try await DBSessionModel.select(on: req.sql)
-				.fields(sess.csrf, sess.csrfExpires)
+				.fields(sess.csrf)
 				.filter(sess.string == sessionId)
-				.first(decode: CSRF.self)
+				.first(decode: CSRF.self)?.csrf
 		}
 		return nil
 	}
 
 	/// Updates the session data in the database.
 	/// - Parameters:
-	///   - csrf: CSRF string.
-	///   - csrfExpires: CSRF's expiration date.
 	///   - data: dictionary with session data.
 	///   - expires: sessions expires.
 	///   - req: `Vapor.Request`.
 	public func update(
-		csrf: String? = nil,
-		csrfExpires: Date? = nil,
 		data: [String: String]? = nil,
 		expires: Date? = nil,
 		on req: Request
@@ -87,11 +80,6 @@ public struct DBSessionPostgres: DBSessionProtocol {
 		if let sessionId = req.cookies["session"]?.string {
 			let query = DBSessionModel.update(on: req.sql)
 				.filter(sess.string == sessionId)
-			if let csrf {
-				query.set(sess.csrf, to: csrf)
-				let csrfExpires = csrfExpires ?? Date().addingTimeInterval(3600)
-				query.set(sess.csrfExpires, to: csrfExpires)
-			}
 			if let data {
 				if let encoded = try? JSONEncoder().encode(data) {
 					let string = String(decoding: encoded, as: UTF8.self)

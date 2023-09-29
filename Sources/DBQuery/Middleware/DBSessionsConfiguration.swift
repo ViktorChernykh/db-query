@@ -16,9 +16,6 @@ public struct DBSessionsConfiguration {
 	/// The cookie's expiration.
 	public let timeInterval: Double
 
-	/// The csrf's expiration.
-	public let csrfTimeInterval: Double
-
 	/// The time interval to delete expired sessions.
 	public let flushTimeInterval: Double
 
@@ -48,7 +45,6 @@ public struct DBSessionsConfiguration {
 	public init(
 		domain: String? = nil,
 		timeInterval: Double = 604_800, // one week
-		csrfTimeInterval: Double = 3600, // one hour
 		flushTimeInterval: Double = 86400, // one day
 		isHTTPOnly: Bool = false,
 		isSecure: Bool = false,
@@ -59,7 +55,6 @@ public struct DBSessionsConfiguration {
 	) {
 		self.domain = domain
 		self.timeInterval = timeInterval
-		self.csrfTimeInterval = csrfTimeInterval
 		self.flushTimeInterval = flushTimeInterval
 		self.isHTTPOnly = isHTTPOnly
 		self.isSecure = isSecure
