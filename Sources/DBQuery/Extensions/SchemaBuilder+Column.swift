@@ -90,4 +90,12 @@ extension SchemaBuilder {
 			dataType: dataType
 		))
 	}
+
+	@discardableResult
+	public func deleteField(
+		_ field: Column,
+		_ dataType: DatabaseSchema.DataType
+	) -> Self {
+		self.deleteField(.key(FieldKey(stringLiteral: field.key)))
+	}
 }
