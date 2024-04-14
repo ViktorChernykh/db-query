@@ -6,6 +6,7 @@
 //
 
 import SQLKit
+import NIOCore
 
 public protocol DBQueryFetcher: AnyObject {
 	var database: SQLDatabase { get }
