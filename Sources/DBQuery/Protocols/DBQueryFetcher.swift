@@ -10,7 +10,7 @@ import NIOCore
 
 public protocol DBQueryFetcher: AnyObject {
 	var database: SQLDatabase { get }
-	func serialize() -> SQLRaw
+	func serialize() -> DBRaw
 }
 
 extension DBQueryFetcher {

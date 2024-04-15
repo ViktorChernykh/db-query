@@ -17,10 +17,10 @@ public final class DBSelectBuilder<T: DBModel>: DBFilterSerialize, DBPredicateFo
 	public let section: String
 	public let alias: String
 
-	public var with: [DBRaw] = []
-	public var columns: [DBRaw] = []
+	public var with: [Raw] = []
+	public var columns: [Raw] = []
 	public var from: [String] = []
-	public var filters: [DBRaw] = []
+	public var filters: [Raw] = []
 	public var joins: [DBJoin] = []
 
 	public var group: [String] = []
@@ -66,8 +66,8 @@ public final class DBSelectBuilder<T: DBModel>: DBFilterSerialize, DBPredicateFo
 		return copy
 	}
 
-	public func serialize() -> SQLRaw {
-		var query = DBRaw("")
+	public func serialize() -> DBRaw {
+		var query = Raw("")
 
 		if with.count > 0 {
 			query.sql += "WITH "
@@ -142,6 +142,6 @@ public final class DBSelectBuilder<T: DBModel>: DBFilterSerialize, DBPredicateFo
 #if DEBUG
 		print(query.sql)
 #endif
-		return SQLRaw(query.sql, query.binds)
+		return DBRaw(query.sql, query.binds)
 	}
 }

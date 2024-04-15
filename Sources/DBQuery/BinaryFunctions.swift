@@ -5,7 +5,7 @@ infix operator !|=|
 
 import SQLKit
 
-public func + (_ lhs: SQLRaw, _ rhs: SQLRaw) -> SQLRaw {
+public func + (_ lhs: DBRaw, _ rhs: DBRaw) -> DBRaw {
 	.init(lhs.sql + " " + rhs.sql, lhs.binds + rhs.binds)
 }
 

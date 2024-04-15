@@ -10,9 +10,9 @@ extension DBInsertBuilder {
 	@discardableResult
 	/// Adds `with` request.
 	///
-	/// - Parameter sql: DBRaw sql query.
+	/// - Parameter sql: Raw sql query.
 	/// - Returns: `self` for chaining.
-	public func with(_ sql: DBRaw) -> Self {
+	public func with(_ sql: Raw) -> Self {
 		self.with.append(sql)
 
 		return self
@@ -109,7 +109,7 @@ extension DBInsertBuilder {
 	/// - Returns: `self` for chaining.
 	public func set(_ data: ColumnBind, as type: String? = nil) -> Self {
 		let lhs = DBColumn(table: nil, data.lhs.key).serialize()
-		self.setsForUpdate.append(DBRaw(lhs + data.op, [data.rhs], as: type))
+		self.setsForUpdate.append(Raw(lhs + data.op, [data.rhs], as: type))
 
 		return self
 	}
@@ -124,7 +124,7 @@ extension DBInsertBuilder {
 	/// - Returns: `self` for chaining.
 	public func set(_ column: Column, to rhs: Encodable, as type: String? = nil) -> Self {
 		let lhs = DBColumn(table: nil, column.key).serialize()
-		self.setsForUpdate.append(DBRaw(lhs + " = ", [rhs], as: type))
+		self.setsForUpdate.append(Raw(lhs + " = ", [rhs], as: type))
 
 		return self
 	}
@@ -138,7 +138,7 @@ extension DBInsertBuilder {
 	/// - Returns: `self` for chaining.
 	public func set(_ column: Column, plus rhs: Encodable) -> Self {
 		let lhs = DBColumn(table: nil, column.key).serialize()
-		self.setsForUpdate.append(DBRaw(lhs + " = " + lhs + " + ", [rhs]))
+		self.setsForUpdate.append(Raw(lhs + " = " + lhs + " + ", [rhs]))
 
 		return self
 	}
@@ -152,7 +152,7 @@ extension DBInsertBuilder {
 	/// - Returns: `self` for chaining.
 	public func set(_ column: Column, minus rhs: Encodable) -> Self {
 		let lhs = DBColumn(table: nil, column.key).serialize()
-		self.setsForUpdate.append(DBRaw(lhs + " = " + lhs + " - ", [rhs]))
+		self.setsForUpdate.append(Raw(lhs + " = " + lhs + " - ", [rhs]))
 
 		return self
 	}
@@ -164,7 +164,7 @@ extension DBInsertBuilder {
 	/// - Returns: `self` for chaining.
 	public func doUpdateSet(_ data: ColumnBind) -> Self {
 		let lhs = DBColumn(table: nil, data.lhs.key).serialize()
-		self.setsForUpdate.append(DBRaw(lhs + data.op, [data.rhs]))
+		self.setsForUpdate.append(Raw(lhs + data.op, [data.rhs]))
 
 		return self
 	}

@@ -13,7 +13,7 @@ extension DBUpdateBuilder {
 	///
 	/// - Parameter sql: raw `with` query
 	/// - Returns: `self` for chaining.
-	public func with(_ sql: DBRaw) -> Self {
+	public func with(_ sql: Raw) -> Self {
 		self.with.append(sql)
 
 		return self

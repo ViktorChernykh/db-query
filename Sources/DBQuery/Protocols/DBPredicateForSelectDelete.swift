@@ -6,7 +6,7 @@
 //
 
 public protocol DBPredicateForSelectDelete: AnyObject {
-	var filters: [DBRaw] { get set }
+	var filters: [Raw] { get set }
 }
 
 extension DBPredicateForSelectDelete {
@@ -46,13 +46,13 @@ extension DBPredicateForSelectDelete {
 
 	@discardableResult
 	public func openBracket() -> Self {
-		self.filters.append(DBRaw("("))
+		self.filters.append(Raw("("))
 		return self
 	}
 
 	@discardableResult
 	public func closeBracket() -> Self {
-		self.filters.append(DBRaw(")"))
+		self.filters.append(Raw(")"))
 		return self
 	}
 	
@@ -72,7 +72,7 @@ extension DBPredicateForSelectDelete {
 		if let last = filters.last, last.sql != "(" {
 			conj = " AND "
 		}
-		self.filters.append(DBRaw(conj + lhs + data.op + rhs))
+		self.filters.append(Raw(conj + lhs + data.op + rhs))
 		return self
 	}
 
@@ -89,7 +89,7 @@ extension DBPredicateForSelectDelete {
 		if let last = filters.last, last.sql != "(" {
 			conj = " AND "
 		}
-		self.filters.append(DBRaw(conj + lhs + data.op, [data.rhs], as: type))
+		self.filters.append(Raw(conj + lhs + data.op, [data.rhs], as: type))
 		return self
 	}
 
@@ -106,7 +106,7 @@ extension DBPredicateForSelectDelete {
 		if let last = filters.last, last.sql != "(" {
 			conj = " AND "
 		}
-		self.filters.append(DBRaw(conj + lhs + data.op, data.rhs, as: type))
+		self.filters.append(Raw(conj + lhs + data.op, data.rhs, as: type))
 		return self
 	}
 
@@ -126,7 +126,7 @@ extension DBPredicateForSelectDelete {
 		if let last = filters.last, last.sql != "(" {
 			conj = " AND "
 		}
-		self.filters.append(DBRaw(conj + lhs + " \(custom) ", [bind]))
+		self.filters.append(Raw(conj + lhs + " \(custom) ", [bind]))
 		return self
 	}
 
@@ -146,7 +146,7 @@ extension DBPredicateForSelectDelete {
 		if let last = filters.last, last.sql != "(" {
 			conj = " AND "
 		}
-		self.filters.append(DBRaw(conj + lhs + " \(custom) ", binds))
+		self.filters.append(Raw(conj + lhs + " \(custom) ", binds))
 		return self
 	}
 
@@ -156,7 +156,7 @@ extension DBPredicateForSelectDelete {
 		if let last = filters.last, last.sql != "(" {
 			conj = " AND "
 		}
-		self.filters.append(DBRaw(conj + query + " \(custom) ", [bind]))
+		self.filters.append(Raw(conj + query + " \(custom) ", [bind]))
 		return self
 	}
 
@@ -166,7 +166,7 @@ extension DBPredicateForSelectDelete {
 		if let last = filters.last, last.sql != "(" {
 			conj = " AND "
 		}
-		self.filters.append(DBRaw(conj + query + " \(custom) ", binds))
+		self.filters.append(Raw(conj + query + " \(custom) ", binds))
 		return self
 	}
 
@@ -177,16 +177,16 @@ extension DBPredicateForSelectDelete {
 		if let last = filters.last, last.sql != "(" {
 			conj = " AND "
 		}
-		self.filters.append(DBRaw(conj + query + " \(custom) " + rhs))
+		self.filters.append(Raw(conj + query + " \(custom) " + rhs))
 		return self
 	}
 
 	@discardableResult
 	/// Creates binary expression from struct with source data to `WHERE` condition.
 	///
-	/// - Parameter sql: DBRaw.
+	/// - Parameter sql: Raw.
 	/// - Returns: `self` for chaining.
-	public func filter(_ sql: DBRaw) -> Self {
+	public func filter(_ sql: Raw) -> Self {
 		self.filters.append(sql)
 		return self
 	}
@@ -207,7 +207,7 @@ extension DBPredicateForSelectDelete {
 		if let last = filters.last, last.sql != "(" {
 			conj = " OR "
 		}
-		self.filters.append(DBRaw(conj + lhs + data.op + rhs))
+		self.filters.append(Raw(conj + lhs + data.op + rhs))
 		return self
 	}
 
@@ -224,7 +224,7 @@ extension DBPredicateForSelectDelete {
 		if let last = filters.last, last.sql != "(" {
 			conj = " OR "
 		}
-		self.filters.append(DBRaw(conj + lhs + data.op, [data.rhs], as: type))
+		self.filters.append(Raw(conj + lhs + data.op, [data.rhs], as: type))
 		return self
 	}
 
@@ -241,7 +241,7 @@ extension DBPredicateForSelectDelete {
 		if let last = filters.last, last.sql != "(" {
 			conj = " OR "
 		}
-		self.filters.append(DBRaw(conj + lhs + data.op, data.rhs, as: type))
+		self.filters.append(Raw(conj + lhs + data.op, data.rhs, as: type))
 		return self
 	}
 
@@ -261,7 +261,7 @@ extension DBPredicateForSelectDelete {
 		if let last = filters.last, last.sql != "(" {
 			conj = " OR "
 		}
-		self.filters.append(DBRaw(conj + lhs + " \(custom) ", [bind]))
+		self.filters.append(Raw(conj + lhs + " \(custom) ", [bind]))
 		return self
 	}
 }

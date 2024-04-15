@@ -10,7 +10,7 @@ public struct DBJoin: DBFilterSerialize {
 	public var alias: String
 	public var from: String
 	public var method: DBJoinMethod
-	public var filters: [DBRaw] = []
+	public var filters: [Raw] = []
 
 	// MARK: - Init
 	public init(
@@ -23,8 +23,8 @@ public struct DBJoin: DBFilterSerialize {
 		self.method = method
 	}
 
-	func serialize(source raw: DBRaw) -> DBRaw {
-		var joinRaw = DBRaw(
+	func serialize(source raw: Raw) -> Raw {
+		var joinRaw = Raw(
 			raw.sql + self.method.serialize() + "JOIN " + self.from,
 			raw.binds
 		)

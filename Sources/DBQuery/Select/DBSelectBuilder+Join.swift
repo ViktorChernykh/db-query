@@ -39,7 +39,7 @@ extension DBSelectBuilder {
 	@discardableResult
 	public func onOpenBracket() -> Self {
 		let last = lastJoin()
-		self.joins[last].filters.append(DBRaw("("))
+		self.joins[last].filters.append(Raw("("))
 		
 		return self
 	}
@@ -47,7 +47,7 @@ extension DBSelectBuilder {
 	@discardableResult
 	public func onCloseBracket() -> Self {
 		let last = lastJoin()
-		self.joins[last].filters.append(DBRaw(")"))
+		self.joins[last].filters.append(Raw(")"))
 
 		return self
 	}
@@ -112,7 +112,7 @@ extension DBSelectBuilder {
 		if let lastFilter = self.joins[last].filters.last, lastFilter.sql != "(" {
 			conj = " AND "
 		}
-		self.joins[last].filters.append(DBRaw(conj + lhs + data.op + rhs))
+		self.joins[last].filters.append(Raw(conj + lhs + data.op + rhs))
 		return self
 	}
 
@@ -132,7 +132,7 @@ extension DBSelectBuilder {
 		if let lastFilter = self.joins[last].filters.last, lastFilter.sql != "(" {
 			conj = " AND "
 		}
-		self.joins[last].filters.append(DBRaw(conj + lhs + data.op, [data.rhs]))
+		self.joins[last].filters.append(Raw(conj + lhs + data.op, [data.rhs]))
 		return self
 	}
 
@@ -152,7 +152,7 @@ extension DBSelectBuilder {
 		if let lastFilter = self.joins[last].filters.last, lastFilter.sql != "(" {
 			conj = " AND "
 		}
-		self.joins[last].filters.append(DBRaw(conj + lhs + data.op, data.rhs))
+		self.joins[last].filters.append(Raw(conj + lhs + data.op, data.rhs))
 		return self
 	}
 
@@ -175,16 +175,16 @@ extension DBSelectBuilder {
 		if let lastFilter = self.joins[last].filters.last, lastFilter.sql != "(" {
 			conj = " AND "
 		}
-		self.joins[last].filters.append(DBRaw(conj + lhs + " \(custom) ", [bind]))
+		self.joins[last].filters.append(Raw(conj + lhs + " \(custom) ", [bind]))
 		return self
 	}
 
 	@discardableResult
 	/// Creates binary expression from struct with source data to `ON` condition.
 	///
-	/// - Parameter sql: DBRaw.
+	/// - Parameter sql: Raw.
 	/// - Returns: `self` for chaining.
-	public func on(_ sql: DBRaw) -> Self {
+	public func on(_ sql: Raw) -> Self {
 		let last = lastJoin()
 		self.joins[last].filters.append(sql)
 		return self
@@ -208,7 +208,7 @@ extension DBSelectBuilder {
 		if let lastFilter = self.joins[last].filters.last, lastFilter.sql != "(" {
 			conj = " OR "
 		}
-		self.joins[last].filters.append(DBRaw(conj + lhs + data.op + rhs))
+		self.joins[last].filters.append(Raw(conj + lhs + data.op + rhs))
 		return self
 	}
 
@@ -228,7 +228,7 @@ extension DBSelectBuilder {
 		if let lastFilter = self.joins[last].filters.last, lastFilter.sql != "(" {
 			conj = " OR "
 		}
-		self.joins[last].filters.append(DBRaw(conj + lhs + data.op, [data.rhs]))
+		self.joins[last].filters.append(Raw(conj + lhs + data.op, [data.rhs]))
 		return self
 	}
 
@@ -248,7 +248,7 @@ extension DBSelectBuilder {
 		if let lastFilter = self.joins[last].filters.last, lastFilter.sql != "(" {
 			conj = " OR "
 		}
-		self.joins[last].filters.append(DBRaw(conj + lhs + data.op, data.rhs))
+		self.joins[last].filters.append(Raw(conj + lhs + data.op, data.rhs))
 		return self
 	}
 
@@ -271,7 +271,7 @@ extension DBSelectBuilder {
 		if let lastFilter = self.joins[last].filters.last, lastFilter.sql != "(" {
 			conj = " OR "
 		}
-		self.joins[last].filters.append(DBRaw(conj + lhs + " \(custom) ", [bind]))
+		self.joins[last].filters.append(Raw(conj + lhs + " \(custom) ", [bind]))
 		return self
 	}
 

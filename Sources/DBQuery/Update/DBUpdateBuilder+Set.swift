@@ -15,7 +15,7 @@ extension DBUpdateBuilder {
 	///   - Returns: `self` for chaining.
 	public func set(_ data: ColumnBind, as type: String? = nil) -> Self {
 		let lhs = DBColumn(table: nil, data.lhs.key).serialize()
-		self.sets.append(DBRaw(lhs + data.op, [data.rhs], as: type))
+		self.sets.append(Raw(lhs + data.op, [data.rhs], as: type))
 
 		return self
 	}
@@ -30,7 +30,7 @@ extension DBUpdateBuilder {
 	/// - Returns: `self` for chaining.
 	public func set(_ field: Column, to rhs: Encodable, as type: String? = nil) -> Self {
 		let lhs = DBColumn(table: nil, field.key).serialize()
-		self.sets.append(DBRaw(lhs + " = ", [rhs], as: type))
+		self.sets.append(Raw(lhs + " = ", [rhs], as: type))
 
 		return self
 	}
@@ -44,7 +44,7 @@ extension DBUpdateBuilder {
 	/// - Returns: `self` for chaining.
 	public func set(_ field: Column, plus rhs: Encodable) -> Self {
 		let lhs = DBColumn(table: nil, field.key).serialize()
-		self.sets.append(DBRaw(lhs + " = " + lhs + " + ", [rhs]))
+		self.sets.append(Raw(lhs + " = " + lhs + " + ", [rhs]))
 
 		return self
 	}
@@ -58,7 +58,7 @@ extension DBUpdateBuilder {
 	/// - Returns: `self` for chaining.
 	public func set(_ field: Column, minus rhs: Encodable) -> Self {
 		let lhs = DBColumn(table: nil, field.key).serialize()
-		self.sets.append(DBRaw(lhs + " = " + lhs + " - ", [rhs]))
+		self.sets.append(Raw(lhs + " = " + lhs + " - ", [rhs]))
 
 		return self
 	}

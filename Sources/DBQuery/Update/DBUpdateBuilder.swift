@@ -16,12 +16,12 @@ public final class DBUpdateBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
 	public let section: String
 	public let alias: String
 
-	public var with: [DBRaw] = []
+	public var with: [Raw] = []
 	public var update: String
-	public var sets: [DBRaw] = []
+	public var sets: [Raw] = []
 	public var from: [String] = []
 	public var cursor: String? = nil
-	public var filters: [DBRaw] = []
+	public var filters: [Raw] = []
 	public var returning: [String] = []
 
 	// MARK: - Init
@@ -33,8 +33,8 @@ public final class DBUpdateBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
 		self.update = "UPDATE " + DBTable(table: T.schema + section).serialize()
 	}
 
-	public func serialize() -> SQLRaw {
-		var query = DBRaw("")
+	public func serialize() -> DBRaw {
+		var query = Raw("")
 
 		if with.count > 0 {
 			query.sql += "WITH "
@@ -86,6 +86,6 @@ public final class DBUpdateBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
 #if DEBUG
 		print(query.sql)
 #endif
-		return SQLRaw(query.sql, query.binds)
+		return DBRaw(query.sql, query.binds)
 	}
 }

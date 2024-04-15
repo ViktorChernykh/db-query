@@ -1,11 +1,11 @@
 //
-//  DBRaw.swift
+//  Raw.swift
 //  DBQuery
 //
 //  Created by Victor Chernykh on 03.09.2022.
 //
 
-public struct DBRaw {
+public struct Raw {
 	public var sql: String
 	public var binds: [Encodable]
 	public var type: String?

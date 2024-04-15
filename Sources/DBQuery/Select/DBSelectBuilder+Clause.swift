@@ -15,7 +15,7 @@ extension DBSelectBuilder {
 	///
 	/// - Parameter sql: `with` query.
 	/// - Returns: `self` for chaining.
-	public func with(_ sql: DBRaw) -> Self {
+	public func with(_ sql: Raw) -> Self {
 		self.with.append(sql)
 
 		return self
@@ -50,7 +50,7 @@ extension DBSelectBuilder {
 		let table = tableAlias ?? column.table
 
 		let col = DBColumn(table: table, column.key, as: columnAlias).serialize()
-		self.columns.append(DBRaw(col))
+		self.columns.append(Raw(col))
 
 		return self
 	}
@@ -67,7 +67,7 @@ extension DBSelectBuilder {
 		if let columnAlias {
 			column += " AS \(col: columnAlias)"
 		}
-		self.columns += [DBRaw(column)]
+		self.columns += [Raw(column)]
 		return self
 	}
 
@@ -76,7 +76,7 @@ extension DBSelectBuilder {
 	///
 	/// - Parameter sql: `field` subquery.
 	/// - Returns: `self` for chaining.
-	public func field(_ sql: DBRaw) -> Self {
+	public func field(_ sql: Raw) -> Self {
 		self.columns += [sql]
 		return self
 	}
@@ -86,7 +86,7 @@ extension DBSelectBuilder {
 	///
 	/// - Returns: `self` for chaining.
 	public func fields() -> Self {
-		self.columns = [DBRaw("\(col: self.alias).*")]
+		self.columns = [Raw("\(col: self.alias).*")]
 
 		return self
 	}
@@ -101,7 +101,7 @@ extension DBSelectBuilder {
 	public func fields(_ columns: Column..., alias tableAlias: String? = nil) -> Self {
 		self.columns += columns.map {
 			let table = tableAlias ?? $0.table
-			return DBRaw(DBColumn(table: table, $0.key).serialize())
+			return Raw(DBColumn(table: table, $0.key).serialize())
 		}
 
 		return self
@@ -197,11 +197,11 @@ extension DBSelectBuilder {
 		if columns.count > 0 {
 			self.columns = columns.map {
 				let table = tableAlias ?? $0.table
-				return DBRaw(DBColumn(table: table, $0.key).serialize())
+				return Raw(DBColumn(table: table, $0.key).serialize())
 			}
 		} else {
 			let table = tableAlias ?? self.alias
-			self.columns = [DBRaw("\(col: table).*")]
+			self.columns = [Raw("\(col: table).*")]
 		}
 
 		return try await self.first(limit: nil).get()

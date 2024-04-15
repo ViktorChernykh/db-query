@@ -22,8 +22,8 @@ extension SQLDatabase {
 		)
 		let query = sql + " LIMIT \(pageRequest.per) OFFSET \(pageRequest.offset);"
 
-		async let count = self.raw(SQLRaw(copy + ";", binds)).first(decode: DBCount.self)
-		async let items = self.raw(SQLRaw(query, binds)).all(decode: U.self)
+		async let count = self.raw(DBRaw(copy + ";", binds)).first(decode: DBCount.self)
+		async let items = self.raw(DBRaw(query, binds)).all(decode: U.self)
 
 		let(models, total) = try await(items, count)
 		return Page(

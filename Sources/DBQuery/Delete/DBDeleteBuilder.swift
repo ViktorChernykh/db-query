@@ -16,11 +16,11 @@ public final class DBDeleteBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
 	public let alias: String
 	public let section: String
 
-	public var with: [DBRaw] = []
+	public var with: [Raw] = []
 	public var from: String = ""
 	public var using: [String] = []
 	public var cursor: String? = nil
-	public var filters: [DBRaw] = []
+	public var filters: [Raw] = []
 	public var returning: [String] = []
 
 	// MARK: Init
@@ -34,8 +34,8 @@ public final class DBDeleteBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
 			.serialize()
 	}
 
-	public func serialize() -> SQLRaw {
-		var query = DBRaw("")
+	public func serialize() -> DBRaw {
+		var query = Raw("")
 
 		if with.count > 0 {
 			query.sql += "WITH "
@@ -66,6 +66,6 @@ public final class DBDeleteBuilder<T: DBModel>: DBQueryFetcher, DBFilterSerializ
 #if DEBUG
 		print(query.sql)
 #endif
-		return SQLRaw(query.sql, query.binds)
+		return DBRaw(query.sql, query.binds)
 	}
 }

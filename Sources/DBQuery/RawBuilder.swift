@@ -2,7 +2,7 @@ import SQLKit
 
 /// Builds raw SQL queries.
 ///
-///     db.raw(SQLRaw())
+///     db.raw(DBRaw())
 ///         .all(decoding: Planet.self)
 ///
 public final class RawBuilder: SQLQueryFetcher {
@@ -13,7 +13,7 @@ public final class RawBuilder: SQLQueryFetcher {
 	/// See `SQLQueryBuilder`.
 	public var query: SQLExpression
 
-	/// Creates a new `SQLRawBuilder`.
+	/// Creates a new `RawBuilder`.
 	public init(_ query: SQLExpression, on db: SQLDatabase) {
 		self.database = db
 		self.query = query
@@ -25,12 +25,12 @@ public final class RawBuilder: SQLQueryFetcher {
 extension SQLDatabase {
 	/// Creates a new `RawBuilder`.
 	///
-	///     db.raw(SQLRaw())...
+	///     db.raw(DBRaw())...
 	///
 	/// - parameters:
-	///    - sql: The SQLRaw - alternative SQLQueryString.
+	///    - sql: The DBRaw - alternative SQLQueryString.
 	/// - returns: `RawBuilder`.
-	public func raw(_ sql: SQLRaw) -> RawBuilder {
+	public func raw(_ sql: DBRaw) -> RawBuilder {
 #if DEBUG
 		print(sql.sql)
 #endif
@@ -44,7 +44,7 @@ extension SQLDatabase {
 #if DEBUG
 		print(string)
 #endif
-		let sql = SQLRaw(string)
+		let sql = DBRaw(string)
 		return .init(sql, on: self)
 	}
 
@@ -55,7 +55,7 @@ extension SQLDatabase {
 #if DEBUG
 		print(dbItem.rawValue)
 #endif
-		let sql = SQLRaw(dbItem.rawValue)
+		let sql = DBRaw(dbItem.rawValue)
 		return .init(sql, on: self)
 	}
 }

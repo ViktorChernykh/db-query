@@ -45,7 +45,7 @@ public final class DBSessionModel: DBModel {
 			CREATE INDEX \(v1.alias)_string_idx ON \(col: v1.schema) (
 			\(col: v1.string));
 			"""
-			try await db.sql.raw(SQLRaw(sql)).run()
+			try await db.sql.raw(DBRaw(sql)).run()
 		}
 
 		func revert(on db: Database) async throws {
@@ -106,7 +106,7 @@ extension DBSessionModel {
 	public func create(on db: SQLDatabase) async throws -> UUID {
 		let sql = "INSERT INTO \(col: v1.schema) VALUES($1, $2, $3, $4, $5, $6);"
 		let binds: [Encodable] = [id, string, csrf, data, expires, userId]
-		let query = SQLRaw(sql, binds)
+		let query = DBRaw(sql, binds)
 		try await db.raw(query).run()
 
 		return id

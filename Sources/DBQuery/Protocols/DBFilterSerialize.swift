@@ -6,11 +6,11 @@
 //
 
 public protocol DBFilterSerialize {
-	var filters: [DBRaw] { get set }
+	var filters: [Raw] { get set }
 }
 
 extension DBFilterSerialize {
-	func serializeFilter(source raw: DBRaw) -> DBRaw {
+	func serializeFilter(source raw: Raw) -> Raw {
 		var query = raw
 		var j = query.binds.count
 
